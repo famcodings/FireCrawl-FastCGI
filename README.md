@@ -213,7 +213,7 @@ npm start
 docker-compose exec redis redis-cli ping
 
 # Test backend health
-curl http://localhost:8000/test_firecrawl
+curl http://localhost:8000/docs
 
 # Test frontend
 curl http://localhost:3000

@@ -100,39 +100,3 @@ async def get_status(request_id: str):
     
     return request_data
 
-@router.get("/test_firecrawl")
-def test_firecrawl():
-    """Simple test endpoint to test Firecrawl API connection."""
-    import time
-    
-    # Use a simple test URL
-    test_url = "https://www.notion.so"
-    
-    # Start extraction
-    extract_result = firecrawl_service.start_extract(test_url)
-    
-    if not extract_result["success"]:
-        return {"error": extract_result["error"], "success": False}
-    
-    response = extract_result["response"]
-    job_id = extract_result["job_id"]
-    
-    if not job_id:
-        return {"error": "No job ID returned", "success": False}
-    
-    # Poll for completion (simplified for testing)
-    for i in range(10):
-        status_result = firecrawl_service.get_extract_status(job_id)
-        
-        if not status_result["success"]:
-            return {"error": status_result["error"], "success": False}
-        
-        if status_result["status"] == "completed":
-            extract_data = status_result["data"]
-            if extract_data:
-                result = firecrawl_service.parse_extract_data(extract_data)
-                return {"result": result.dict(), "success": True}
-        
-        time.sleep(1)
-    
-    return {"error": "Test timeout", "success": False}
