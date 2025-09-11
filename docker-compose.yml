@@ -1,0 +1,57 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: firecrawl-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - firecrawl-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: firecrawl-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - REDIS_URL=redis://redis:6379
+      - HOST=0.0.0.0
+      - PORT=8000
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - firecrawl-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: firecrawl-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - firecrawl-network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+
+networks:
+  firecrawl-network:
+    driver: bridge

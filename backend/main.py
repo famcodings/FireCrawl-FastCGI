@@ -10,6 +10,7 @@ import os
 from dotenv import load_dotenv
 from firecrawl import Firecrawl
 import time
+import redis.asyncio as redis
 
 load_dotenv()
 
@@ -28,8 +29,11 @@ app.add_middleware(
 FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY")
 FIRECRAWL_BASE_URL = "https://api.firecrawl.dev/v1"
 
-# In-memory storage for active requests (in production, use Redis or database)
-active_requests: Dict[str, Dict] = {}
+# Redis configuration
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379")
+redis_client: Optional[redis.Redis] = None
+
+# WebSocket connections (still in-memory for active connections)
 websocket_connections: Dict[str, WebSocket] = {}
 
 class CrawlRequest(BaseModel):
@@ -43,6 +47,33 @@ class FirecrawlResponse(BaseModel):
     locations: str
     icp: str
     industry: str
+
+# Redis helper functions
+async def get_redis_client():
+    """Get Redis client instance"""
+    global redis_client
+    if redis_client is None:
+        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+    return redis_client
+
+async def store_request_data(request_id: str, data: Dict):
+    """Store request data in Redis"""
+    client = await get_redis_client()
+    await client.hset(f"request:{request_id}", mapping=data)
+    await client.expire(f"request:{request_id}", 3600)  # Expire after 1 hour
+
+async def get_request_data(request_id: str) -> Optional[Dict]:
+    """Get request data from Redis"""
+    client = await get_redis_client()
+    data = await client.hgetall(f"request:{request_id}")
+    return data if data else None
+
+async def update_request_status(request_id: str, status: str, **kwargs):
+    """Update request status and additional data in Redis"""
+    client = await get_redis_client()
+    await client.hset(f"request:{request_id}", "status", status)
+    if kwargs:
+        await client.hset(f"request:{request_id}", mapping=kwargs)
 
 async def poll_firecrawl_status(request_id: str, job_id: str):
     """Background task to poll Firecrawl Extract status"""
@@ -69,9 +100,8 @@ async def poll_firecrawl_status(request_id: str, job_id: str):
                     industry=extract_data.get("industry", "")
                 )
                 
-                # Update active request
-                active_requests[request_id]["status"] = "completed"
-                active_requests[request_id]["result"] = result.dict()
+                # Update request in Redis
+                await update_request_status(request_id, "completed", result=json.dumps(result.dict()))
                 
                 # Send result via WebSocket
                 if request_id in websocket_connections:
@@ -85,8 +115,7 @@ async def poll_firecrawl_status(request_id: str, job_id: str):
                 break
             
             elif status_response.status == "failed":
-                active_requests[request_id]["status"] = "error"
-                active_requests[request_id]["error"] = status_response.error if status_response.error else "Unknown error"
+                await update_request_status(request_id, "error", error=status_response.error if status_response.error else "Unknown error")
                 
                 if request_id in websocket_connections:
                     await websocket_connections[request_id].send_text(
@@ -102,8 +131,7 @@ async def poll_firecrawl_status(request_id: str, job_id: str):
                 
         except Exception as e:
             print(f"Error in polling: {str(e)}")
-            active_requests[request_id]["status"] = "error"
-            active_requests[request_id]["error"] = str(e)
+            await update_request_status(request_id, "error", error=str(e))
             
             if request_id in websocket_connections:
                 await websocket_connections[request_id].send_text(
@@ -167,13 +195,13 @@ async def start_crawl(request: CrawlRequest):
                 industry=extract_data.get("industry", "")
             )
             
-            # Store request info
-            active_requests[request_id] = {
+            # Store request info in Redis
+            await store_request_data(request_id, {
                 "status": "completed",
-                "result": result.dict(),
+                "result": json.dumps(result.dict()),
                 "url": str(request.url),
                 "company_name": request.company_name
-            }
+            })
             
             # Send result via WebSocket if connection exists
             if request_id in websocket_connections:
@@ -196,13 +224,13 @@ async def start_crawl(request: CrawlRequest):
             print("job_id", job_id)
             
             if job_id:
-                # Store request info
-                active_requests[request_id] = {
+                # Store request info in Redis
+                await store_request_data(request_id, {
                     "status": "processing",
                     "job_id": job_id,
                     "url": str(request.url),
                     "company_name": request.company_name
-                }
+                })
                 
                 # Start background polling
                 asyncio.create_task(poll_firecrawl_status(request_id, job_id))
@@ -227,8 +255,8 @@ async def websocket_endpoint(websocket: WebSocket, request_id: str):
     
     try:
         # Send initial status if request exists
-        if request_id in active_requests:
-            request_data = active_requests[request_id]
+        request_data = await get_request_data(request_id)
+        if request_data:
             await websocket.send_text(json.dumps({
                 "type": "status",
                 "status": request_data["status"]
@@ -236,9 +264,10 @@ async def websocket_endpoint(websocket: WebSocket, request_id: str):
             
             # If request is already completed, send the result
             if request_data["status"] == "completed" and "result" in request_data:
+                result_data = json.loads(request_data["result"])
                 await websocket.send_text(json.dumps({
                     "type": "result",
-                    "data": request_data["result"]
+                    "data": result_data
                 }))
         
         # Keep connection alive
@@ -252,10 +281,15 @@ async def websocket_endpoint(websocket: WebSocket, request_id: str):
 @app.get("/api/status/{request_id}")
 async def get_status(request_id: str):
     """Get the status of a crawl request"""
-    if request_id not in active_requests:
+    request_data = await get_request_data(request_id)
+    if not request_data:
         raise HTTPException(status_code=404, detail="Request not found")
     
-    return active_requests[request_id]
+    # Parse result if it exists
+    if "result" in request_data:
+        request_data["result"] = json.loads(request_data["result"])
+    
+    return request_data
 
 @app.get("/test_firecrawl")
 def test_firecrawl():
@@ -274,7 +308,7 @@ def test_firecrawl():
             "icp": { "type": "string" },
             "industry": { "type": "string" }
         },
-         "required": ["products_services", "mission", "usp", "locations", "icp", "industry"]
+         "required": ["products", "services", "mission", "usp", "locations", "icp", "industry"]
     }
     prompt = "As a Sales Professional, extract information about the company from all pages of the website. What industry is the company working in? What products and services does this company offer? Where is the company located? Analyze the site to derive what their formally declared or informal mission mission is. Also check what the Unique Selling Proposition of the company is (USP): Why should a customer work with them and not with any other? Also infer an Ideal Customer Profile (ICP) from the site."
 
