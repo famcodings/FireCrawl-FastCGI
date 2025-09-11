@@ -1,0 +1,117 @@
+"""Firecrawl service for web scraping operations."""
+import asyncio
+from typing import Dict, Optional
+from firecrawl import Firecrawl
+from models import FirecrawlResponse
+from config import config
+
+class FirecrawlService:
+    """Service for Firecrawl API operations."""
+    
+    def __init__(self):
+        self.client = Firecrawl(api_key=config.FIRECRAWL_API_KEY)
+        self.extract_query = self._get_extract_query()
+        self.extract_schema = self._get_extract_schema()
+    
+    def _get_extract_query(self) -> str:
+        """Get the extraction query for company analysis."""
+        return """As a Sales Professional, extract information about the company from all pages of the website. What industry is the company working in? What products and services does this company offer? Where is the company located? Analyze the site to derive what their formally declared or informal mission mission is. Also check what the Unique Selling Proposition of the company is (USP): Why should a customer work with them and not with any other? Also infer an Ideal Customer Profile (ICP) from the site."""
+    
+    def _get_extract_schema(self) -> Dict:
+        """Get the extraction schema for structured data."""
+        return {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "properties": {
+                "products_services": {"type": "string"},
+                "mission": {"type": "string"},
+                "usp": {"type": "string"},
+                "locations": {"type": "string"},
+                "icp": {"type": "string"},
+                "industry": {"type": "string"}
+            },
+            "required": ["products_services", "mission", "usp", "locations", "icp", "industry"]
+        }
+    
+    def start_extract(self, url: str) -> Dict:
+        """Start a new extraction job."""
+        try:
+            res = self.client.start_extract(
+                urls=[url],
+                prompt=self.extract_query,
+                schema=self.extract_schema,
+            )
+            return {
+                "success": True,
+                "response": res,
+                "job_id": res.id if hasattr(res, 'id') else None,
+                "is_direct": hasattr(res, 'data') and res.data is not None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def get_extract_status(self, job_id: str) -> Dict:
+        """Get the status of an extraction job."""
+        try:
+            status_response = self.client.get_extract_status(job_id)
+            return {
+                "success": True,
+                "status": status_response.status,
+                "data": status_response.data if hasattr(status_response, 'data') else None,
+                "error": status_response.error if hasattr(status_response, 'error') else None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def parse_extract_data(self, extract_data: Dict) -> FirecrawlResponse:
+        """Parse extraction data into structured response."""
+        return FirecrawlResponse(
+            products_services=extract_data.get("products_services", ""),
+            mission=extract_data.get("mission", ""),
+            usp=extract_data.get("usp", ""),
+            locations=extract_data.get("locations", ""),
+            icp=extract_data.get("icp", ""),
+            industry=extract_data.get("industry", "")
+        )
+    
+    async def poll_status(self, job_id: str, request_id: str, websocket_service) -> None:
+        """Poll Firecrawl status until completion."""
+        while True:
+            try:
+                status_result = self.get_extract_status(job_id)
+                
+                if not status_result["success"]:
+                    await websocket_service.send_error(request_id, status_result["error"])
+                    break
+                
+                status = status_result["status"]
+                print(f"Status check for {job_id}: {status}")
+                
+                if status == "completed":
+                    extract_data = status_result["data"]
+                    if extract_data:
+                        result = self.parse_extract_data(extract_data)
+                        await websocket_service.send_result(request_id, result.dict())
+                    break
+                
+                elif status == "failed":
+                    error_msg = status_result["error"] or "Unknown error"
+                    await websocket_service.send_error(request_id, error_msg)
+                    break
+                
+                # Still processing, wait 3 seconds
+                await asyncio.sleep(3)
+                
+            except Exception as e:
+                print(f"Error in polling: {str(e)}")
+                await websocket_service.send_error(request_id, str(e))
+                break
+
+# Global Firecrawl service instance
+firecrawl_service = FirecrawlService()
