@@ -26,8 +26,8 @@ PORT=8000
 
 ### 3. Start the Application
 ```bash
-# Using the management script
-./docker.sh start
+# Using Makefile (recommended)
+make start
 
 # Or using docker-compose directly
 docker-compose up -d --build
@@ -74,14 +74,25 @@ frontend/src/
 
 ## 🐳 Docker Management
 
-### Using the Management Script
+### Using Makefile (Recommended)
 ```bash
-./docker.sh start     # Start the application
-./docker.sh stop      # Stop the application
-./docker.sh restart   # Restart the application
-./docker.sh logs      # View application logs
-./docker.sh test      # Run health checks
-./docker.sh clean     # Clean up Docker resources
+make start     # Start the application
+make stop      # Stop the application
+make restart   # Restart the application
+make logs      # View application logs
+make test      # Run health checks
+make clean     # Clean up Docker resources
+make help      # Show all available commands
+```
+
+### Additional Makefile Commands
+```bash
+make build     # Build Docker images
+make dev       # Start in development mode
+make status    # Show container status
+make install   # Install dependencies locally
+make lint      # Run linting checks
+make format    # Format code
 ```
 
 ### Using Docker Compose Directly
@@ -245,14 +256,21 @@ curl http://localhost:3000
 ### Debugging
 ```bash
 # View service logs
+make logs
+# Or specific service logs
 docker-compose logs backend
 docker-compose logs frontend
 docker-compose logs redis
 
 # Check service status
+make status
+# Or
 docker-compose ps
 
 # Access service containers
+make shell-backend
+make shell-frontend
+# Or directly
 docker-compose exec backend bash
 docker-compose exec redis redis-cli
 ```
