@@ -29,8 +29,8 @@ PORT=8000
 # Using Makefile (recommended)
 make start
 
-# Or using docker-compose directly
-docker-compose up -d --build
+# Or using docker compose directly
+docker compose up -d --build
 ```
 
 ### 4. Access the Application
@@ -98,20 +98,20 @@ make format    # Format code
 ### Using Docker Compose Directly
 ```bash
 # Start all services
-docker-compose up -d --build
+docker compose up -d --build
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop services
-docker-compose down
+docker compose down
 
 # Stop and remove volumes
-docker-compose down -v
+docker compose down -v
 
 # Rebuild specific service
-docker-compose build backend
-docker-compose up backend
+docker compose build backend
+docker compose up backend
 ```
 
 ## 🔧 Services
@@ -221,7 +221,7 @@ npm start
 ### Health Checks
 ```bash
 # Test Redis connection
-docker-compose exec redis redis-cli ping
+docker compose exec redis redis-cli ping
 
 # Test backend health
 curl http://localhost:8000/docs
@@ -248,8 +248,8 @@ curl http://localhost:3000
 ## 🔧 Troubleshooting
 
 ### Common Issues
-- **Port Conflicts**: Modify ports in `docker-compose.yml` if 3000, 6379, or 8000 are in use
-- **Redis Connection**: Ensure Redis service is healthy with `docker-compose ps`
+- **Port Conflicts**: Modify ports in `docker compose.yml` if 3000, 6379, or 8000 are in use
+- **Redis Connection**: Ensure Redis service is healthy with `docker compose ps`
 - **Firecrawl API**: Verify API key is correctly set in `.env` file
 - **WebSocket Issues**: Check CORS settings and firewall rules
 
@@ -258,21 +258,21 @@ curl http://localhost:3000
 # View service logs
 make logs
 # Or specific service logs
-docker-compose logs backend
-docker-compose logs frontend
-docker-compose logs redis
+docker compose logs backend
+docker compose logs frontend
+docker compose logs redis
 
 # Check service status
 make status
 # Or
-docker-compose ps
+docker compose ps
 
 # Access service containers
 make shell-backend
 make shell-frontend
 # Or directly
-docker-compose exec backend bash
-docker-compose exec redis redis-cli
+docker compose exec backend bash
+docker compose exec redis redis-cli
 ```
 
 ## 📊 Performance

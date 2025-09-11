@@ -11,25 +11,25 @@ help: ## Show this help message
 
 start: ## Start the application
 	@echo "🚀 Starting FireCrawl application..."
-	docker-compose up -d --build
+	docker compose up -d --build
 	@echo "✅ Application started!"
 	@echo "   Frontend: http://localhost:3000"
 	@echo "   Backend:  http://localhost:8000"
 
 stop: ## Stop the application
 	@echo "🛑 Stopping FireCrawl application..."
-	docker-compose down
+	docker compose down
 	@echo "✅ Application stopped!"
 
 restart: ## Restart the application
 	@echo "🔄 Restarting FireCrawl application..."
-	docker-compose down
-	docker-compose up -d --build
+	docker compose down
+	docker compose up -d --build
 	@echo "✅ Application restarted!"
 
 logs: ## Show application logs
 	@echo "📊 Showing logs..."
-	docker-compose logs -f
+	docker compose logs -f
 
 test: ## Run health checks
 	@echo "🧪 Running tests..."
@@ -43,17 +43,17 @@ test: ## Run health checks
 
 clean: ## Clean up Docker resources
 	@echo "🧹 Cleaning up Docker resources..."
-	docker-compose down -v
+	docker compose down -v
 	docker system prune -f
 	@echo "✅ Cleanup completed!"
 
 build: ## Build Docker images
 	@echo "🔨 Building Docker images..."
-	docker-compose build
+	docker compose build
 
 dev: ## Start in development mode with live reload
 	@echo "🛠️ Starting development environment..."
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+	docker compose -f docker compose.yml -f docker compose.dev.yml up -d --build
 
 install: ## Install dependencies locally
 	@echo "📦 Installing dependencies..."
@@ -91,34 +91,34 @@ format: ## Format code
 # Database operations
 db-migrate: ## Run database migrations
 	@echo "🗄️ Running database migrations..."
-	docker-compose exec backend python -m alembic upgrade head
+	docker compose exec backend python -m alembic upgrade head
 
 db-reset: ## Reset database
 	@echo "🔄 Resetting database..."
-	docker-compose exec backend python -m alembic downgrade base
-	docker-compose exec backend python -m alembic upgrade head
+	docker compose exec backend python -m alembic downgrade base
+	docker compose exec backend python -m alembic upgrade head
 
 # Monitoring and debugging
 status: ## Show container status
 	@echo "📊 Container status:"
-	docker-compose ps
+	docker compose ps
 
 shell-backend: ## Open shell in backend container
-	docker-compose exec backend /bin/bash
+	docker compose exec backend /bin/bash
 
 shell-frontend: ## Open shell in frontend container
-	docker-compose exec frontend /bin/sh
+	docker compose exec frontend /bin/sh
 
 # Production deployment
 deploy: ## Deploy to production
 	@echo "🚀 Deploying to production..."
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+	docker compose -f docker compose.yml -f docker compose.prod.yml up -d --build
 
 # Backup and restore
 backup: ## Create backup
 	@echo "💾 Creating backup..."
-	docker-compose exec backend python backup.py
+	docker compose exec backend python backup.py
 
 restore: ## Restore from backup
 	@echo "📥 Restoring from backup..."
-	docker-compose exec backend python restore.py
+	docker compose exec backend python restore.py
