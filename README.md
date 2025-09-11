@@ -1,92 +1,131 @@
-# Firecrawl Extract API - Company Analysis Tool
+# FireCrawl - Company Analysis Tool
 
-A full-stack application that uses Firecrawl's Extract API to analyze company websites and extract comprehensive business information.
+A modern, containerized full-stack application that uses Firecrawl's Extract API to analyze company websites and extract comprehensive business information. Built with FastAPI, React, Redis, and Docker.
 
-## Features
-
-- **FastAPI Backend**: Python-based API server with WebSocket support
-- **React Frontend**: Modern web interface with real-time updates
-- **Firecrawl Integration**: Asynchronous website analysis using Firecrawl Extract API
-- **Real-time Communication**: WebSocket-based updates for long-running processes
-- **Concurrent Sessions**: Support for multiple simultaneous analysis requests
-
-## Project Structure
-
-```
-FireCrawl - FastCGI/
-├── backend/
-│   └── main.py              # FastAPI server with WebSocket support
-├── frontend/
-│   ├── public/
-│   │   └── index.html       # HTML template
-│   ├── src/
-│   │   ├── App.js           # Main React component
-│   │   ├── index.js         # React entry point
-│   │   └── index.css        # Styling
-│   └── package.json         # Frontend dependencies
-├── requirements.txt         # Python dependencies
-├── env.example             # Environment variables template
-└── start_backend.sh        # Backend startup script
-```
-
-## Setup Instructions
+## 🚀 Quick Start with Docker
 
 ### Prerequisites
-
-- Python 3.8+
-- Node.js 16+
+- Docker and Docker Compose
 - Firecrawl API key
 
-### Backend Setup
+### 1. Clone and Setup
+```bash
+git clone <repository-url>
+cd "FireCrawl - FastCGI"
+cp env.example .env
+```
 
-1. **Create and activate virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+### 2. Configure Environment
+Edit `.env` file and add your Firecrawl API key:
+```env
+FIRECRAWL_API_KEY=your_actual_api_key_here
+REDIS_URL=redis://redis:6379
+HOST=0.0.0.0
+PORT=8000
+```
 
-2. **Install Python dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 3. Start the Application
+```bash
+# Using the management script
+./docker.sh start
 
-3. **Configure environment variables:**
-   ```bash
-   cp env.example .env
-   # Edit .env and add your Firecrawl API key
-   ```
+# Or using docker-compose directly
+docker-compose up -d --build
+```
 
-4. **Start the backend server:**
-   ```bash
-   ./start_backend.sh
-   # Or manually: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
-   ```
+### 4. Access the Application
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+- **Redis**: localhost:6379
 
-### Frontend Setup
+## 🏗️ Architecture
 
-1. **Navigate to frontend directory:**
-   ```bash
-   cd frontend
-   ```
+### Modular Backend Structure
+```
+backend/
+├── app.py                   # Main FastAPI application
+├── config.py                # Configuration management
+├── models.py                # Pydantic models
+├── services/                # Service layer
+│   ├── redis_service.py     # Redis operations
+│   ├── firecrawl_service.py # Firecrawl API integration
+│   └── websocket_service.py # WebSocket management
+└── routes/                  # API routes
+    └── api.py              # REST endpoints
+```
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### Component-Based Frontend
+```
+frontend/src/
+├── App.js                   # Main application component
+├── components/              # Reusable UI components
+│   ├── Header.js            # Application header
+│   ├── CrawlForm.js         # Analysis form
+│   ├── StatusDisplay.js     # Status indicator
+│   ├── ErrorDisplay.js      # Error messages
+│   └── ResultDisplay.js     # Results presentation
+├── services/                # External service integration
+│   ├── apiService.js        # Backend API communication
+│   └── webSocketService.js  # Real-time updates
+└── hooks/                   # Custom React hooks
+    └── useCrawl.js         # Crawl operation management
+```
 
-3. **Start the development server:**
-   ```bash
-   npm start
-   ```
+## 🐳 Docker Management
 
-The frontend will be available at `http://localhost:3000`
+### Using the Management Script
+```bash
+./docker.sh start     # Start the application
+./docker.sh stop      # Stop the application
+./docker.sh restart   # Restart the application
+./docker.sh logs      # View application logs
+./docker.sh test      # Run health checks
+./docker.sh clean     # Clean up Docker resources
+```
 
-## API Endpoints
+### Using Docker Compose Directly
+```bash
+# Start all services
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
+
+# Rebuild specific service
+docker-compose build backend
+docker-compose up backend
+```
+
+## 🔧 Services
+
+### Redis Service
+- **Purpose**: Data persistence and caching
+- **Port**: 6379
+- **Features**: Request data storage, automatic expiration, health checks
+
+### Backend Service (FastAPI)
+- **Purpose**: API server and business logic
+- **Port**: 8000
+- **Features**: RESTful API, WebSocket support, Firecrawl integration
+
+### Frontend Service (React + Nginx)
+- **Purpose**: User interface
+- **Port**: 3000
+- **Features**: Modern React UI, API proxying, WebSocket support
+
+## 📡 API Endpoints
 
 ### POST /api/crawl
 Start a new website analysis.
 
-**Request Body:**
+**Request:**
 ```json
 {
   "url": "https://example.com",
@@ -98,7 +137,7 @@ Start a new website analysis.
 ```json
 {
   "request_id": "uuid-string",
-  "status": "started",
+  "status": "started|completed",
   "message": "Crawl started successfully"
 }
 ```
@@ -110,11 +149,16 @@ Get the status of a crawl request.
 ```json
 {
   "status": "processing|completed|error",
-  "job_id": "firecrawl-job-id",
   "url": "https://example.com",
   "company_name": "Example Company",
-  "result": { ... },  // Only present when completed
-  "error": "..."      // Only present when error
+  "result": {
+    "industry": "...",
+    "products_services": "...",
+    "mission": "...",
+    "usp": "...",
+    "locations": "...",
+    "icp": "..."
+  }
 }
 ```
 
@@ -126,23 +170,10 @@ Real-time updates for crawl progress.
 - `result`: Analysis results when completed
 - `error`: Error message if failed
 
-## How It Works
+## 🔍 Analysis Features
 
-1. **User submits URL and company name** through the React frontend
-2. **Backend starts Firecrawl Extract** with predefined sales analysis query
-3. **Background polling process** checks Firecrawl status every 3 seconds
-4. **WebSocket connection** provides real-time updates to the frontend
-5. **Results are displayed** when analysis completes
-
-## Firecrawl Analysis Query
-
-The system uses a specialized prompt for sales professionals:
-
-> "As a Sales Professional, extract information about the company from all pages of the website. What industry is the company working in? What products and services does this company offer? Where is the company located? Analyze the site to derive what their formally declared or informal mission mission is. Also check what the Unique Selling Proposition of the company is (USP): Why should a customer work with them and not with any other? Also infer an Ideal Customer Profile (ICP) from the site."
-
-## Extracted Data Schema
-
-The system extracts the following information:
+### Extracted Information
+The system analyzes company websites and extracts:
 
 - **Industry**: Company's business sector
 - **Products & Services**: What the company offers
@@ -151,33 +182,102 @@ The system extracts the following information:
 - **Locations**: Geographic presence
 - **ICP**: Ideal Customer Profile
 
-## Environment Variables
+### Analysis Process
+1. **User submits** URL and company name through the React frontend
+2. **Backend starts** Firecrawl Extract with specialized sales analysis query
+3. **Background polling** checks Firecrawl status every 3 seconds
+4. **WebSocket connection** provides real-time updates to the frontend
+5. **Results are displayed** when analysis completes
 
-Create a `.env` file with:
+## 🛠️ Development
 
-```env
-FIRECRAWL_API_KEY=your_firecrawl_api_key_here
-HOST=0.0.0.0
-PORT=8000
+### Local Development
+For frontend development with hot reload:
+```bash
+cd frontend
+npm install
+npm start
 ```
 
-## Development
+### Environment Variables
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `FIRECRAWL_API_KEY` | Your Firecrawl API key | Required |
+| `REDIS_URL` | Redis connection URL | `redis://redis:6379` |
+| `HOST` | Backend host | `0.0.0.0` |
+| `PORT` | Backend port | `8000` |
 
-- Backend runs on `http://localhost:8000`
-- Frontend runs on `http://localhost:3000`
-- API documentation available at `http://localhost:8000/docs`
+### Health Checks
+```bash
+# Test Redis connection
+docker-compose exec redis redis-cli ping
 
-## Production Deployment
+# Test backend health
+curl http://localhost:8000/test_firecrawl
 
-For production deployment:
+# Test frontend
+curl http://localhost:3000
+```
 
-1. **Backend**: Use a production ASGI server like Gunicorn with Uvicorn workers
-2. **Frontend**: Build with `npm run build` and serve with a web server
-3. **WebSocket**: Ensure your reverse proxy supports WebSocket connections
-4. **Environment**: Use proper environment variable management
+## 🚀 Production Deployment
 
-## Troubleshooting
+### Docker Production Setup
+1. **Environment Configuration**: Use production environment variables
+2. **SSL/TLS**: Configure certificates for HTTPS
+3. **Reverse Proxy**: Use Traefik or Nginx for load balancing
+4. **Monitoring**: Add logging and monitoring solutions
+5. **Secrets Management**: Use Docker secrets or external secret management
 
-- **WebSocket connection issues**: Check CORS settings and firewall rules
-- **Firecrawl API errors**: Verify API key and rate limits
-- **Long processing times**: Firecrawl analysis can take several minutes for complex sites
+### Scaling Considerations
+- **Horizontal Scaling**: Multiple backend instances behind load balancer
+- **Redis Clustering**: For high availability and performance
+- **Database**: Consider PostgreSQL for persistent data storage
+- **CDN**: Use CDN for frontend static assets
+
+## 🔧 Troubleshooting
+
+### Common Issues
+- **Port Conflicts**: Modify ports in `docker-compose.yml` if 3000, 6379, or 8000 are in use
+- **Redis Connection**: Ensure Redis service is healthy with `docker-compose ps`
+- **Firecrawl API**: Verify API key is correctly set in `.env` file
+- **WebSocket Issues**: Check CORS settings and firewall rules
+
+### Debugging
+```bash
+# View service logs
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs redis
+
+# Check service status
+docker-compose ps
+
+# Access service containers
+docker-compose exec backend bash
+docker-compose exec redis redis-cli
+```
+
+## 📊 Performance
+
+### Optimization Features
+- **Redis Caching**: Request data cached with automatic expiration
+- **WebSocket Efficiency**: Real-time updates without polling
+- **Docker Optimization**: Multi-stage builds and layer caching
+- **Nginx**: Efficient static file serving and API proxying
+
+### Monitoring
+- **Health Checks**: Built-in health monitoring for all services
+- **Logging**: Structured logging for debugging and monitoring
+- **Metrics**: Ready for integration with monitoring solutions
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with Docker Compose
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
