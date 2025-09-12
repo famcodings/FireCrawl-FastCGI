@@ -114,21 +114,6 @@ const CrawlForm = ({
               Website URL
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg 
-                  className="h-5 w-5 text-gray-500" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-3a5 5 0 00-5-5 5 5 0 00-5 5v3m0 0h10" 
-                  />
-                </svg>
-              </div>
               <input
                 type="url"
                 id="url"
@@ -138,7 +123,7 @@ const CrawlForm = ({
                 onBlur={() => setFocusedField(null)}
                 placeholder="https://example.com"
                 disabled={isLoading}
-                className={`glass-input w-full pl-12 pr-4 py-4 text-gray-800 placeholder-gray-500 text-lg font-medium transition-all duration-300 ${
+                className={`glass-input w-full pl-4 pr-4 py-4 text-gray-800 placeholder-gray-500 text-lg font-medium transition-all duration-300 ${
                   focusedField === 'url' ? 'scale-[1.02]' : ''
                 } ${hasAttemptedSubmit && validationErrors.url ? 'border-red-400 bg-red-50/20' : ''}`}
                 required
@@ -170,21 +155,6 @@ const CrawlForm = ({
               Company Name
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg 
-                  className="h-5 w-5 text-gray-500" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" 
-                  />
-                </svg>
-              </div>
               <input
                 type="text"
                 id="companyName"
@@ -194,7 +164,7 @@ const CrawlForm = ({
                 onBlur={() => setFocusedField(null)}
                 placeholder="Enter company name"
                 disabled={isLoading}
-                className={`glass-input w-full pl-12 pr-4 py-4 text-gray-800 placeholder-gray-500 text-lg font-medium transition-all duration-300 ${
+                className={`glass-input w-full pl-4 pr-4 py-4 text-gray-800 placeholder-gray-500 text-lg font-medium transition-all duration-300 ${
                   focusedField === 'company' ? 'scale-[1.02]' : ''
                 } ${hasAttemptedSubmit && validationErrors.companyName ? 'border-red-400 bg-red-50/20' : ''}`}
                 required

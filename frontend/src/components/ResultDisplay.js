@@ -3,8 +3,9 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import Modal from './Modal';
 
-const ResultDisplay = ({ result }) => {
+const ResultDisplay = ({ result, companyName, url }) => {
   const [modalState, setModalState] = useState({ isOpen: false, title: '', content: '', icon: null, color: '' });
+  const [copySuccess, setCopySuccess] = useState(false);
 
   if (!result) return null;
 
@@ -92,9 +93,34 @@ const ResultDisplay = ({ result }) => {
             </div>
             <h2 className="text-3xl font-bold text-white">Analysis Complete</h2>
           </div>
-          <p className="text-white/80 text-lg">
+          <p className="text-white/80 text-lg mb-6">
             Here's what we discovered about the company
           </p>
+          
+          {/* Company Information */}
+          <div className="glass-card p-6 max-w-2xl mx-auto">
+            <div className="flex items-center justify-center space-x-4 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white">{companyName || 'Company'}</h3>
+            </div>
+            <div className="flex items-center justify-center space-x-2 text-white/70">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <a 
+                href={url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-200 hover:text-blue-100 transition-colors duration-200 underline"
+              >
+                {url}
+              </a>
+            </div>
+          </div>
         </div>
         
         {/* Results Grid */}
@@ -104,7 +130,7 @@ const ResultDisplay = ({ result }) => {
             const hasContent = value && value.trim().length > 0;
             // Show "Show More" if content is long enough to be truncated by line-clamp-3
             // Roughly 3 lines = ~150-200 characters depending on screen size
-            const isLongContent = hasContent && (value.length > 100 || value.split(' ').length > 20);
+            const isLongContent = hasContent && (value.length > 80 || value.split(' ').length > 15);
             
             return (
               <div 
@@ -204,16 +230,32 @@ const ResultDisplay = ({ result }) => {
           </button>
           
           <button 
-            className="glass-button-secondary px-6 py-3 flex items-center justify-center space-x-2"
-            onClick={() => {
-              navigator.clipboard.writeText(JSON.stringify(result, null, 2));
-              // You could add a toast notification here
+            className="glass-button-secondary px-6 py-3 flex items-center justify-center space-x-2 transition-all duration-300 min-w-[157px]"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+                setCopySuccess(true);
+                setTimeout(() => setCopySuccess(false), 2000);
+              } catch (err) {
+                console.error('Failed to copy: ', err);
+              }
             }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            <span>Copy Data</span>
+            {copySuccess ? (
+              <>
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-green-400">Copied!</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Copy Data</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -232,7 +274,9 @@ const ResultDisplay = ({ result }) => {
 };
 
 ResultDisplay.propTypes = {
-  result: PropTypes.object
+  result: PropTypes.object.isRequired,
+  companyName: PropTypes.string,
+  url: PropTypes.string
 };
 
 export default ResultDisplay;

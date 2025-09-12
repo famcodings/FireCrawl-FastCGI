@@ -1,7 +1,7 @@
 /** Component for displaying crawl status */
 import PropTypes from 'prop-types';
 
-const StatusDisplay = ({ status }) => {
+const StatusDisplay = ({ status, companyName, url }) => {
   if (!status) return null;
 
   const getStatusContent = () => {
@@ -83,9 +83,40 @@ const StatusDisplay = ({ status }) => {
             <h3 className="text-lg font-bold text-gray-800 mb-2">
               {title}
             </h3>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed mb-4">
               {message}
             </p>
+            
+            {/* Company Information - only show when not completed */}
+            {(companyName || url) && status !== 'completed' && (
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 border border-white/30">
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h4 className="text-sm font-semibold text-gray-800">
+                    {companyName || 'Company'}
+                  </h4>
+                </div>
+                {url && (
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <a 
+                      href={url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-500 transition-colors duration-200 underline text-sm"
+                    >
+                      {url}
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* Progress indicator for processing */}
             {status === 'processing' && (
@@ -107,7 +138,9 @@ const StatusDisplay = ({ status }) => {
 };
 
 StatusDisplay.propTypes = {
-  status: PropTypes.string
+  status: PropTypes.string.isRequired,
+  companyName: PropTypes.string,
+  url: PropTypes.string
 };
 
 export default StatusDisplay;

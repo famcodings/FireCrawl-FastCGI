@@ -62,7 +62,7 @@ function App() {
               {/* Status display */}
               {status && (
                 <div className="animate-smooth-fade-slide animate-delay-200 transition-all duration-500">
-                  <StatusDisplay status={status} />
+                  <StatusDisplay status={status} companyName={companyName} url={url} />
                 </div>
               )}
 
@@ -76,7 +76,7 @@ function App() {
               {/* Results display */}
               {result && (
                 <div className="animate-gentle-bounce animate-delay-200 transition-all duration-700">
-                  <ResultDisplay result={result} />
+                  <ResultDisplay result={result} companyName={companyName} url={url} />
                 </div>
               )}
 
