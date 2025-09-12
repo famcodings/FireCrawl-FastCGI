@@ -1,5 +1,5 @@
 /** Modal component for displaying detailed content */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 
@@ -32,12 +32,12 @@ const Modal = ({
     };
   }, [isOpen]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsVisible(false);
     setTimeout(() => {
       onClose();
     }, 300); // Match animation duration
-  };
+  }, [onClose]);
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -56,7 +56,7 @@ const Modal = ({
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 

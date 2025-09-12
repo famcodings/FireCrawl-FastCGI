@@ -13,33 +13,6 @@ import { useCrawl } from './hooks/useCrawl';
 // Configuration
 import environment from './config/environment';
 
-// Floating background elements component
-const FloatingElements = () => {
-  return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none">
-      {/* Floating geometric shapes */}
-      <div className="floating-icon top-20 left-10 animate-delay-100">
-        <div className="w-16 h-16 rounded-full bg-white/5 backdrop-blur-sm" />
-      </div>
-      <div className="floating-icon top-40 right-20 animate-delay-200">
-        <div className="w-12 h-12 rounded-2xl bg-blue-400/10 backdrop-blur-sm rotate-45" />
-      </div>
-      <div className="floating-icon bottom-32 left-16 animate-delay-300">
-        <div className="w-20 h-20 rounded-3xl bg-purple-400/8 backdrop-blur-sm" />
-      </div>
-      <div className="floating-icon bottom-20 right-32 animate-delay-500">
-        <div className="w-14 h-14 rounded-full bg-indigo-400/10 backdrop-blur-sm" />
-      </div>
-      <div className="floating-icon top-60 left-1/3 animate-delay-300">
-        <div className="w-10 h-10 rounded-xl bg-pink-400/8 backdrop-blur-sm rotate-12" />
-      </div>
-      <div className="floating-icon bottom-40 right-1/4 animate-delay-100">
-        <div className="w-18 h-18 rounded-2xl bg-teal-400/8 backdrop-blur-sm -rotate-12" />
-      </div>
-    </div>
-  );
-};
-
 function App() {
   const {
     url,
@@ -56,8 +29,6 @@ function App() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Floating background elements */}
-      <FloatingElements />
       
       {/* Main content */}
       <div className="relative z-10">
@@ -113,7 +84,10 @@ function App() {
               {result && (
                 <div className="text-center animate-smooth-fade-slide animate-delay-400 mt-8">
                   <button
-                    onClick={reset}
+                    onClick={() => {
+                      reset();
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     className="glass-button px-8 py-4 text-lg font-semibold flex items-center justify-center space-x-3 mx-auto transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 active:scale-105 active:translate-y-0"
                   >
                     <svg className="w-6 h-6 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">

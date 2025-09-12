@@ -1,5 +1,5 @@
 /** Form component for crawl requests */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 
 const CrawlForm = ({ 
