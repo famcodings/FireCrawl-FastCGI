@@ -1,5 +1,4 @@
 /** Header component for the application */
-import React from 'react';
 import PropTypes from 'prop-types';
 
 const Header = ({ appName = 'FireCrawl', version = '1.0.0' }) => {

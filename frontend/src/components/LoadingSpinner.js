@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -33,9 +32,9 @@ const LoadingSpinner = ({
     return (
       <div className={`${containerClass} ${className}`}>
         <div className="flex space-x-1">
-          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"/>
+          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}/>
+          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}/>
         </div>
         {text && (
           <p className={`text-white/90 font-medium ${inline ? 'text-sm ml-3' : 'text-base mt-3'}`}>
@@ -49,7 +48,7 @@ const LoadingSpinner = ({
   if (variant === 'pulse') {
     return (
       <div className={`${containerClass} ${className}`}>
-        <div className={`${sizeClasses[size]} bg-white/20 rounded-full animate-pulse`}></div>
+        <div className={`${sizeClasses[size]} bg-white/20 rounded-full animate-pulse`}/>
         {text && (
           <p className={`text-white/90 font-medium ${inline ? 'text-sm' : 'text-base mt-3'}`}>
             {text}
@@ -63,14 +62,14 @@ const LoadingSpinner = ({
     <div className={`${containerClass} ${className}`}>
       <div className="relative">
         {variant === 'gradient' ? (
-          <div className={`${sizeClasses[size]} rounded-full ${variants[variant]} animate-spin`}></div>
+          <div className={`${sizeClasses[size]} rounded-full ${variants[variant]} animate-spin`}/>
         ) : (
-          <div className={`${sizeClasses[size]} border-2 ${variants[variant]} rounded-full animate-spin`}></div>
+          <div className={`${sizeClasses[size]} border-2 ${variants[variant]} rounded-full animate-spin`}/>
         )}
         
         {/* Optional inner ring for enhanced effect */}
         {size === 'large' || size === 'xl' ? (
-          <div className="absolute inset-2 border border-white/10 rounded-full"></div>
+          <div className="absolute inset-2 border border-white/10 rounded-full"/>
         ) : null}
       </div>
       

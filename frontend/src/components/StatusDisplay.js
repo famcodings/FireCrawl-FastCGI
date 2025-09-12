@@ -1,5 +1,4 @@
 /** Component for displaying crawl status */
-import React from 'react';
 import PropTypes from 'prop-types';
 
 const StatusDisplay = ({ status }) => {

@@ -25,7 +25,8 @@ class WebSocketService {
     this.messageHandlers.set('error', callbacks.onError);
 
     this.connection.onopen = () => {
-      console.log('WebSocket connected');
+      // eslint-disable-next-line no-console
+      console.log('✅ WebSocket connected to:', wsUrl);
       if (callbacks.onOpen) {
         callbacks.onOpen();
       }
@@ -34,12 +35,15 @@ class WebSocketService {
     this.connection.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        // eslint-disable-next-line no-console
+        console.log('📨 WebSocket message received:', data);
         const handler = this.messageHandlers.get(data.type);
         
         if (handler) {
           handler(data);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error parsing WebSocket message:', error);
         if (callbacks.onError) {
           callbacks.onError('Invalid message format');
@@ -48,6 +52,7 @@ class WebSocketService {
     };
 
     this.connection.onclose = () => {
+      // eslint-disable-next-line no-console
       console.log('WebSocket disconnected');
       if (callbacks.onClose) {
         callbacks.onClose();
@@ -55,6 +60,7 @@ class WebSocketService {
     };
 
     this.connection.onerror = (error) => {
+      // eslint-disable-next-line no-console
       console.error('WebSocket error:', error);
       if (callbacks.onError) {
         callbacks.onError('WebSocket connection error');

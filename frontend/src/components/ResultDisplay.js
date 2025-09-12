@@ -1,9 +1,10 @@
 /** Component for displaying analysis results */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
+import Modal from './Modal';
 
 const ResultDisplay = ({ result }) => {
-  const [expandedCard, setExpandedCard] = useState(null);
+  const [modalState, setModalState] = useState({ isOpen: false, title: '', content: '', icon: null, color: '' });
 
   if (!result) return null;
 
@@ -58,8 +59,21 @@ const ResultDisplay = ({ result }) => {
     }
   ];
 
-  const toggleCard = (key) => {
-    setExpandedCard(expandedCard === key ? null : key);
+  const openModal = (key, label, icon, color) => {
+    const content = result[key];
+    if (content && content.trim().length > 0) {
+      setModalState({
+        isOpen: true,
+        title: label,
+        content: content,
+        icon: icon,
+        color: color
+      });
+    }
+  };
+
+  const closeModal = () => {
+    setModalState({ isOpen: false, title: '', content: '', icon: null, color: '' });
   };
 
   return (
@@ -87,15 +101,16 @@ const ResultDisplay = ({ result }) => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {resultItems.map(({ key, label, icon, color, bgColor, borderColor }, index) => {
             const value = result[key];
-            const isExpanded = expandedCard === key;
             const hasContent = value && value.trim().length > 0;
+            // Show "Show More" if content is long enough to be truncated by line-clamp-3
+            // Roughly 3 lines = ~150-200 characters depending on screen size
+            const isLongContent = hasContent && (value.length > 100 || value.split(' ').length > 20);
             
             return (
               <div 
                 key={key} 
-                className={`glass-card p-6 cursor-pointer transition-all duration-300 hover:scale-105 group ${bgColor} border ${borderColor} animate-scale-in`}
+                className={`glass-card p-6 transition-all duration-300 hover:scale-105 group ${bgColor} border ${borderColor} animate-scale-in`}
                 style={{ animationDelay: `${index * 100}ms` }}
-                onClick={() => hasContent && toggleCard(key)}
               >
                 {/* Card header */}
                 <div className="flex items-center space-x-3 mb-4">
@@ -105,22 +120,12 @@ const ResultDisplay = ({ result }) => {
                   <div className="flex-1">
                     <h4 className="font-bold text-white text-lg">{label}</h4>
                   </div>
-                  {hasContent && (
-                    <svg 
-                      className={`w-5 h-5 text-white/60 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  )}
                 </div>
 
                 {/* Card content */}
-                <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-96' : 'max-h-20'}`}>
+                <div className="mb-4">
                   {hasContent ? (
-                    <p className={`text-white/90 leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}>
+                    <p className="text-white/90 leading-relaxed line-clamp-3">
                       {value}
                     </p>
                   ) : (
@@ -130,14 +135,17 @@ const ResultDisplay = ({ result }) => {
                   )}
                 </div>
 
-                {/* Expand hint */}
-                {hasContent && !isExpanded && value.length > 100 && (
-                  <div className="mt-3 text-xs text-white/60 flex items-center space-x-1">
-                    <span>Click to expand</span>
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                {/* Show More button */}
+                {isLongContent && (
+                  <button
+                    onClick={() => openModal(key, label, icon, color)}
+                    className="glass-button px-4 py-2 text-sm font-medium flex items-center space-x-2 transition-all duration-300 hover:scale-105 hover:shadow-md"
+                  >
+                    <span>Show More</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                  </div>
+                  </button>
                 )}
               </div>
             );
@@ -209,6 +217,16 @@ const ResultDisplay = ({ result }) => {
           </button>
         </div>
       </div>
+
+      {/* Modal for detailed content */}
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        content={modalState.content}
+        icon={modalState.icon}
+        color={modalState.color}
+      />
     </div>
   );
 };

@@ -16,6 +16,7 @@ export const useCrawl = () => {
   const [error, setError] = useState('');
   const [requestId, setRequestId] = useState(null);
 
+
   const wsRef = useRef(null);
 
   // Cleanup WebSocket on unmount
