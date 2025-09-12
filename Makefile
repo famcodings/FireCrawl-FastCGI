@@ -53,7 +53,19 @@ build: ## Build Docker images
 
 dev: ## Start in development mode with live reload
 	@echo "🛠️ Starting development environment..."
-	docker compose -f docker compose.yml -f docker compose.dev.yml up -d --build
+	docker compose -f docker-compose.dev.yml up -d --build
+	@echo "✅ Development environment started!"
+	@echo "   Frontend: http://localhost:3000 (with hot reload)"
+	@echo "   Backend:  http://localhost:8000"
+
+dev-stop: ## Stop development environment
+	@echo "🛑 Stopping development environment..."
+	docker compose -f docker-compose.dev.yml down
+	@echo "✅ Development environment stopped!"
+
+dev-logs: ## Show development logs
+	@echo "📊 Showing development logs..."
+	docker compose -f docker-compose.dev.yml logs -f
 
 install: ## Install dependencies locally
 	@echo "📦 Installing dependencies..."

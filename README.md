@@ -1,6 +1,6 @@
-# FireCrawl - Company Analysis Tool
+# FireCrawl - AI-Powered Company Analysis Tool
 
-A modern, containerized full-stack application that uses Firecrawl's Extract API to analyze company websites and extract comprehensive business information. Built with FastAPI, React, Redis, and Docker.
+A modern, containerized full-stack application that uses Firecrawl's Extract API to analyze company websites and extract comprehensive business insights. Built with FastAPI, React (with Tailwind CSS), Redis, and Docker. Features a beautiful macOS-style glass morphism UI with real-time WebSocket updates.
 
 ## 🚀 Quick Start with Docker
 
@@ -25,6 +25,20 @@ PORT=8000
 ```
 
 ### 3. Start the Application
+
+#### For Development (with hot reload)
+```bash
+# Start development environment with hot reloading
+make dev
+
+# Stop development environment
+make dev-stop
+
+# View development logs
+make dev-logs
+```
+
+#### For Production
 ```bash
 # Using Makefile (recommended)
 make start
@@ -85,26 +99,50 @@ make clean     # Clean up Docker resources
 make help      # Show all available commands
 ```
 
-### Additional Makefile Commands
+### Development Commands
 ```bash
-make build     # Build Docker images
-make dev       # Start in development mode
-make status    # Show container status
-make install   # Install dependencies locally
-make lint      # Run linting checks
-make format    # Format code
+# Development environment
+make dev           # Start development mode with hot reload
+make dev-stop      # Stop development environment
+make dev-logs      # View development logs
+
+# Additional commands
+make build         # Build Docker images
+make status        # Show container status
+make install       # Install dependencies locally
+make lint          # Run linting checks
+make format        # Format code
 ```
+
+### Docker Configurations
+
+#### Production Setup (`docker-compose.yml`)
+- Frontend built with Nginx for optimal performance
+- Multi-stage builds for smaller image sizes
+- Health checks for all services
+
+#### Development Setup (`docker-compose.dev.yml`)
+- Frontend runs with `npm start` for hot reloading
+- Volume mounting for real-time file sync
+- Development environment variables
 
 ### Using Docker Compose Directly
 ```bash
-# Start all services
+# Production environment
 docker compose up -d --build
+
+# Development environment
+docker compose -f docker-compose.dev.yml up -d --build
 
 # View logs
 docker compose logs -f
+# Or for development
+docker compose -f docker-compose.dev.yml logs -f
 
 # Stop services
 docker compose down
+# Or for development
+docker compose -f docker-compose.dev.yml down
 
 # Stop and remove volumes
 docker compose down -v
@@ -126,10 +164,15 @@ docker compose up backend
 - **Port**: 8000
 - **Features**: RESTful API, WebSocket support, Firecrawl integration
 
-### Frontend Service (React + Nginx)
-- **Purpose**: User interface
-- **Port**: 3000
-- **Features**: Modern React UI, API proxying, WebSocket support
+### Frontend Service (React + Tailwind CSS)
+- **Purpose**: User interface with modern glass morphism design
+- **Port**: 3000 (development), 80 (production with Nginx)
+- **Features**: 
+  - Modern React UI with Tailwind CSS
+  - macOS-style glass morphism design
+  - Real-time WebSocket updates
+  - Hot reloading in development mode
+  - Responsive design for all devices
 
 ## 📡 API Endpoints
 
@@ -200,14 +243,64 @@ The system analyzes company websites and extracts:
 4. **WebSocket connection** provides real-time updates to the frontend
 5. **Results are displayed** when analysis completes
 
+## 🎨 UI Design Features
+
+### Modern Glass Morphism Design
+- **macOS-style Interface**: Beautiful glass cards with backdrop blur effects
+- **Animated Gradients**: Dynamic background animations and smooth transitions
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Tailwind CSS**: Utility-first CSS framework for rapid development
+
+### Interactive Components
+- **Real-time Form Validation**: Instant feedback on user input
+- **Expandable Result Cards**: Click to expand detailed analysis results
+- **Loading Animations**: Elegant spinners and progress indicators
+- **Status Displays**: Color-coded status updates with smooth transitions
+
+### User Experience
+- **Intuitive Navigation**: Clean, modern interface with clear call-to-actions
+- **Export Functionality**: Download results as JSON or copy to clipboard
+- **Error Handling**: User-friendly error messages with troubleshooting tips
+- **Accessibility**: Proper contrast ratios and keyboard navigation support
+
 ## 🛠️ Development
 
-### Local Development
-For frontend development with hot reload:
+### Development Environment Features
+- **Hot Reloading**: Frontend changes are reflected immediately without rebuilding
+- **Volume Mounting**: Local file changes are synced with Docker containers
+- **Separate Dev Containers**: Development and production use different Docker configurations
+- **Real-time Updates**: See changes instantly as you code
+
+### Development Setup
+#### Docker Development (Recommended)
+```bash
+# Start full development environment
+make dev
+
+# This starts:
+# - Frontend with hot reload on port 3000
+# - Backend with auto-restart on port 8000
+# - Redis for caching
+```
+
+#### Local Frontend Development
+If you prefer running frontend locally:
 ```bash
 cd frontend
 npm install
-npm start
+npm start  # Runs on http://localhost:3000
+```
+
+### File Structure for Development
+```
+frontend/
+├── Dockerfile          # Production build
+├── Dockerfile.dev      # Development build with hot reload
+├── src/
+│   ├── components/     # React components
+│   ├── hooks/          # Custom hooks
+│   ├── services/       # API and WebSocket services
+│   └── config/         # Configuration files
 ```
 
 ### Environment Variables
