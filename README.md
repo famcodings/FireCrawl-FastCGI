@@ -61,29 +61,58 @@ backend/
 ├── app.py                   # Main FastAPI application
 ├── config.py                # Configuration management
 ├── models.py                # Pydantic models
+├── Dockerfile               # Backend container configuration
 ├── services/                # Service layer
+│   ├── __init__.py         # Service package initialization
 │   ├── redis_service.py     # Redis operations
 │   ├── firecrawl_service.py # Firecrawl API integration
 │   └── websocket_service.py # WebSocket management
 └── routes/                  # API routes
+    ├── __init__.py         # Routes package initialization
     └── api.py              # REST endpoints
 ```
 
 ### Component-Based Frontend
 ```
-frontend/src/
-├── App.js                   # Main application component
-├── components/              # Reusable UI components
-│   ├── Header.js            # Application header
-│   ├── CrawlForm.js         # Analysis form
-│   ├── StatusDisplay.js     # Status indicator
-│   ├── ErrorDisplay.js      # Error messages
-│   └── ResultDisplay.js     # Results presentation
-├── services/                # External service integration
-│   ├── apiService.js        # Backend API communication
-│   └── webSocketService.js  # Real-time updates
-└── hooks/                   # Custom React hooks
-    └── useCrawl.js         # Crawl operation management
+frontend/
+├── src/
+│   ├── App.js              # Main application component
+│   ├── index.js            # Application entry point
+│   ├── index.css           # Global styles and animations
+│   ├── components/          # Reusable UI components
+│   │   ├── index.js        # Component exports
+│   │   ├── Header.js       # Application header
+│   │   ├── CrawlForm.js    # Analysis form with validation
+│   │   ├── StatusDisplay.js # Status indicator with animations
+│   │   ├── ResultDisplay.js # Results presentation with modal
+│   │   ├── LoadingSpinner.js # Loading animations
+│   │   └── Modal.js        # Modal component for detailed content
+│   ├── services/           # External service integration
+│   │   ├── index.js        # Service exports
+│   │   ├── apiService.js   # Backend API communication
+│   │   └── webSocketService.js # Real-time WebSocket updates
+│   ├── hooks/              # Custom React hooks
+│   │   ├── index.js        # Hook exports
+│   │   └── useCrawl.js     # Crawl operation management
+│   ├── config/             # Configuration files
+│   │   ├── index.js        # Config exports
+│   │   └── environment.js  # Environment-specific settings
+│   └── utils/              # Utility functions
+│       ├── index.js        # Utility exports
+│       ├── constants.js    # Application constants
+│       └── validation.js  # Form validation helpers
+├── public/                 # Static assets
+│   ├── index.html         # HTML template
+│   ├── favicon.ico        # Site icon
+│   ├── manifest.json      # PWA manifest
+│   └── robots.txt         # SEO robots file
+├── build/                 # Production build output
+├── Dockerfile             # Production container config
+├── Dockerfile.dev         # Development container config
+├── nginx.conf             # Nginx configuration
+├── package.json           # Node.js dependencies
+├── tailwind.config.js     # Tailwind CSS configuration
+└── postcss.config.js      # PostCSS configuration
 ```
 
 ## 🐳 Docker Management
@@ -252,10 +281,11 @@ The system analyzes company websites and extracts:
 - **Tailwind CSS**: Utility-first CSS framework for rapid development
 
 ### Interactive Components
-- **Real-time Form Validation**: Instant feedback on user input
-- **Expandable Result Cards**: Click to expand detailed analysis results
-- **Loading Animations**: Elegant spinners and progress indicators
-- **Status Displays**: Color-coded status updates with smooth transitions
+- **Real-time Form Validation**: Instant feedback on user input with URL validation
+- **Modal Content Display**: "Show More" buttons open animated modals for detailed content
+- **Loading Animations**: Elegant spinners and progress indicators with shimmer effects
+- **Status Displays**: Color-coded status updates with smooth transitions and animations
+- **Smooth Scrolling**: Automatic scroll to top when starting new analysis
 
 ### User Experience
 - **Intuitive Navigation**: Clean, modern interface with clear call-to-actions
@@ -296,11 +326,21 @@ npm start  # Runs on http://localhost:3000
 frontend/
 ├── Dockerfile          # Production build
 ├── Dockerfile.dev      # Development build with hot reload
-├── src/
-│   ├── components/     # React components
-│   ├── hooks/          # Custom hooks
-│   ├── services/       # API and WebSocket services
-│   └── config/         # Configuration files
+├── nginx.conf          # Nginx configuration for production
+├── package.json        # Node.js dependencies and scripts
+├── tailwind.config.js  # Tailwind CSS configuration
+├── postcss.config.js   # PostCSS configuration
+├── public/             # Static assets (favicon, manifest, etc.)
+├── build/              # Production build output
+└── src/
+    ├── App.js          # Main application component
+    ├── index.js        # Application entry point
+    ├── index.css       # Global styles and animations
+    ├── components/     # React components (Header, CrawlForm, etc.)
+    ├── hooks/          # Custom React hooks (useCrawl)
+    ├── services/       # API and WebSocket services
+    ├── config/         # Environment configuration
+    └── utils/          # Utility functions and validation
 ```
 
 ### Environment Variables
