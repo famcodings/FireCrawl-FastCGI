@@ -54,23 +54,6 @@ class ApiService {
     }
   }
 
-  /**
-   * Test Firecrawl API connection
-   * @returns {Promise<Object>} Test result
-   */
-  async testFirecrawl() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/test_firecrawl`);
-      
-      if (!response.ok) {
-        throw new Error('Test failed');
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw new Error(error.message || 'Test error');
-    }
-  }
 }
 
 export const apiService = new ApiService();
