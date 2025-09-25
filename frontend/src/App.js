@@ -3,9 +3,9 @@ import './index.css';
 
 // Components
 import Header from './components/Header';
-import CrawlForm from './components/CrawlForm';
-import StatusDisplay from './components/StatusDisplay';
-import ResultDisplay from './components/ResultDisplay';
+import ProfilingForm from './components/ProfilingForm';
+import ProfilingStatus from './components/ProfilingStatus';
+import ProfileDisplay from './components/ProfileDisplay';
 
 // Hooks
 import { useCrawl } from './hooks/useCrawl';
@@ -43,7 +43,7 @@ function App() {
             {/* Form section - show when idle or error, hide when processing or complete */}
             {!status && !result && (
               <div className="animate-gentle-bounce animate-delay-100 transition-all duration-700 ease-out">
-                <CrawlForm
+                <ProfilingForm
                   url={url}
                   companyName={companyName}
                   isLoading={isLoading}
@@ -62,7 +62,7 @@ function App() {
               {/* Status display */}
               {status && (
                 <div className="animate-smooth-fade-slide animate-delay-200 transition-all duration-500">
-                  <StatusDisplay status={status} companyName={companyName} url={url} />
+                  <ProfilingStatus status={status} companyName={companyName} url={url} />
                 </div>
               )}
 
@@ -76,7 +76,7 @@ function App() {
               {/* Results display */}
               {result && (
                 <div className="animate-gentle-bounce animate-delay-200 transition-all duration-700">
-                  <ResultDisplay result={result} companyName={companyName} url={url} />
+                  <ProfileDisplay result={result} companyName={companyName} url={url} />
                 </div>
               )}
 

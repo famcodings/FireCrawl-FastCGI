@@ -1,7 +1,7 @@
 /** Header component for the application */
 import PropTypes from 'prop-types';
 
-const Header = ({ appName = 'FireCrawl', version = '1.0.0' }) => {
+const Header = ({ appName = 'InfoBud PoC', version = '1.0.0' }) => {
   return (
     <header className="text-center mb-12">
       <div className="glass-card p-8 md:p-12 relative overflow-hidden">

@@ -1,7 +1,7 @@
-/** Component for displaying crawl status */
+/** Component for displaying profiling status */
 import PropTypes from 'prop-types';
 
-const StatusDisplay = ({ status, companyName, url }) => {
+const ProfilingStatus = ({ status, companyName, url }) => {
   if (!status) return null;
 
   const getStatusContent = () => {
@@ -137,10 +137,10 @@ const StatusDisplay = ({ status, companyName, url }) => {
   );
 };
 
-StatusDisplay.propTypes = {
+ProfilingStatus.propTypes = {
   status: PropTypes.string.isRequired,
   companyName: PropTypes.string,
   url: PropTypes.string
 };
 
-export default StatusDisplay;
+export default ProfilingStatus;

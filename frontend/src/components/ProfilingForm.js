@@ -1,8 +1,8 @@
-/** Form component for crawl requests */
+/** Form component for profiling requests */
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 
-const CrawlForm = ({ 
+const ProfilingForm = ({ 
   url, 
   companyName, 
   isLoading, 
@@ -260,7 +260,7 @@ const CrawlForm = ({
   );
 };
 
-CrawlForm.propTypes = {
+ProfilingForm.propTypes = {
   url: PropTypes.string.isRequired,
   companyName: PropTypes.string.isRequired,
   isLoading: PropTypes.bool.isRequired,
@@ -272,4 +272,4 @@ CrawlForm.propTypes = {
   onReset: PropTypes.func.isRequired
 };
 
-export default CrawlForm;
+export default ProfilingForm;

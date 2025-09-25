@@ -1,9 +1,9 @@
-/** Component for displaying analysis results */
+/** Component for displaying profiling results */
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import Modal from './Modal';
 
-const ResultDisplay = ({ result, companyName, url }) => {
+const ProfileDisplay = ({ result, companyName, url }) => {
   const [modalState, setModalState] = useState({ isOpen: false, title: '', content: '', icon: null, color: '' });
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -273,10 +273,10 @@ const ResultDisplay = ({ result, companyName, url }) => {
   );
 };
 
-ResultDisplay.propTypes = {
+ProfileDisplay.propTypes = {
   result: PropTypes.object.isRequired,
   companyName: PropTypes.string,
   url: PropTypes.string
 };
 
-export default ResultDisplay;
+export default ProfileDisplay;

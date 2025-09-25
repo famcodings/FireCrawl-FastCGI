@@ -1,4 +1,4 @@
-# FireCrawl Frontend
+# InfoBud PoC Frontend
 
 A modern React application for web scraping and crawling operations.
 
@@ -75,7 +75,7 @@ Create a `.env.local` file for local development:
 ```env
 REACT_APP_API_BASE_URL=http://localhost:8000
 REACT_APP_WS_URL=ws://localhost:8000/ws
-REACT_APP_NAME=FireCrawl
+REACT_APP_NAME="InfoBud PoC"
 REACT_APP_VERSION=1.0.0
 ```
 
@@ -164,4 +164,4 @@ The frontend is containerized using multi-stage Docker build:
 
 ## 📄 License
 
-This project is part of the FireCrawl application suite.
+This project is part of the InfoBud PoC application suite.

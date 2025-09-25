@@ -1,8 +1,8 @@
 {
-  "name": "firecrawl-frontend",
-  "version": "1.0.0",
+  "name": "infobud-poc-frontend",
+  "version": "0.1.0",
   "private": true,
-  "description": "FireCrawl - Modern web scraping and crawling application frontend",
+  "description": "InfoBud PoC - Modern web scraping and crawling application frontend",
   "homepage": ".",
   "scripts": {
     "start": "react-scripts start",
