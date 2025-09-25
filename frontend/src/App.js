@@ -1,117 +1,115 @@
 /** Main App component */
 import './index.css';
+import { Toaster } from 'react-hot-toast';
 
 // Components
 import Header from './components/Header';
-import ProfilingForm from './components/ProfilingForm';
-import ProfilingStatus from './components/ProfilingStatus';
-import ProfileDisplay from './components/ProfileDisplay';
+import SupplierForm from './components/SupplierForm';
+import SupplierDisplay from './components/SupplierDisplay';
+import Resources from './components/Resources';
 
 // Hooks
-import { useCrawl } from './hooks/useCrawl';
+import { useSupplier } from './hooks/useSupplier';
 
 // Configuration
 import environment from './config/environment';
 
 function App() {
   const {
-    url,
-    companyName,
+    supplier,
+    resources,
     isLoading,
-    status,
-    result,
-    error,
-    setUrl,
-    setCompanyName,
-    startCrawl,
-    reset
-  } = useCrawl();
+    isInitialLoading,
+    isEditing,
+    setIsEditing,
+    loadExistingSupplier,
+    saveSupplier,
+    addResource,
+    refreshResources,
+    upsertResource
+  } = useSupplier();
 
   return (
-    <div className="min-h-screen relative">
-      
-      {/* Main content */}
-      <div className="relative z-10">
-        <div className="container mx-auto px-4 py-8 max-w-5xl">
-          {/* Header with animation */}
-          <div className="animate-fade-in">
-            <Header appName={environment.APP_NAME} version={environment.VERSION} />
-          </div>
-          
-          {/* Main content area */}
-          <main className="space-y-8 mt-8 transition-all duration-700 ease-out">
-            {/* Form section - show when idle or error, hide when processing or complete */}
-            {!status && !result && (
-              <div className="animate-gentle-bounce animate-delay-100 transition-all duration-700 ease-out">
-                <ProfilingForm
-                  url={url}
-                  companyName={companyName}
-                  isLoading={isLoading}
-                  result={result}
-                  error={error}
-                  onUrlChange={setUrl}
-                  onCompanyNameChange={setCompanyName}
-                  onSubmit={startCrawl}
-                  onReset={reset}
-                />
+    <div className="min-h-screen flex">
+      {/* Sidebar */}
+      <div className="w-80 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 border-r border-gray-200">
+        <Header 
+          appName={environment.APP_NAME}
+          version={environment.VERSION}
+          supplier={supplier}
+          resources={resources}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 min-h-screen overflow-auto">
+        <div className="container mx-auto px-8 py-8 max-w-4xl">
+          <main className="space-y-8">
+            {isInitialLoading ? (
+              <div className="glass-card p-8 md:p-10 text-center">
+                <div className="animate-spin w-8 h-8 border-2 border-gray-300 border-t-orange-500 rounded-full mx-auto mb-4" />
+                <p className="text-gray-600">Loading your workspace...</p>
               </div>
+            ) : (
+              <>
+                {isEditing || !supplier ? (
+                  <SupplierForm 
+                    supplier={supplier}
+                    onSave={saveSupplier}
+                    isLoading={isLoading}
+                  />
+                ) : (
+                  <SupplierDisplay 
+                    supplier={supplier}
+                    onEdit={() => setIsEditing(true)}
+                  />
+                )}
+
+                {supplier && !isEditing && (
+                  <Resources
+                    resources={resources}
+                    onAddResource={addResource}
+                    isLoading={isLoading}
+                    onResourcesRefresh={refreshResources}
+                    onResourceUpdated={upsertResource}
+                  />
+                )}
+
+              </>
             )}
-
-            {/* Status and results section */}
-            <div className="space-y-6 transition-all duration-700 ease-out">
-              {/* Status display */}
-              {status && (
-                <div className="animate-smooth-fade-slide animate-delay-200 transition-all duration-500">
-                  <ProfilingStatus status={status} companyName={companyName} url={url} />
-                </div>
-              )}
-
-              {/* Simple error display */}
-              {error && (
-                <div className="animate-scale-in animate-delay-300 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded transition-all duration-500 hover:shadow-md">
-                  <strong>Error:</strong> {typeof error === 'string' ? error : error.message || 'An error occurred'}
-                </div>
-              )}
-                
-              {/* Results display */}
-              {result && (
-                <div className="animate-gentle-bounce animate-delay-200 transition-all duration-700">
-                  <ProfileDisplay result={result} companyName={companyName} url={url} />
-                </div>
-              )}
-
-              {/* Start Another Analysis button */}
-              {result && (
-                <div className="text-center animate-smooth-fade-slide animate-delay-400 mt-8">
-                  <button
-                    onClick={() => {
-                      reset();
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="glass-button px-8 py-4 text-lg font-semibold flex items-center justify-center space-x-3 mx-auto transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 active:scale-105 active:translate-y-0"
-                  >
-                    <svg className="w-6 h-6 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span>Start Another Analysis</span>
-                  </button>
-                </div>
-              )}
-            </div>
           </main>
-
-          {/* Footer */}
-          <footer className="mt-16 text-center animate-fade-in animate-delay-500">
-            <div className="glass-card p-6 inline-block">
-              <p className="text-white/70 text-sm">
-                Powered by{' '}
-                <span className="text-shimmer font-semibold">{environment.APP_NAME}</span>
-                {' '}• Built with ❤️
-              </p>
-            </div>
-          </footer>
         </div>
       </div>
+
+      {/* Toast notifications */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          className: 'glass-toast',
+          style: {
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '16px',
+            color: '#1e293b',
+            fontSize: '14px',
+            fontWeight: '500',
+          },
+          success: {
+            iconTheme: {
+              primary: '#ec6636',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
     </div>
   );
 }

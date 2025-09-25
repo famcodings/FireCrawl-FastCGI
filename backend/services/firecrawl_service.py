@@ -2,6 +2,7 @@
 import asyncio
 from typing import Dict, Optional
 from firecrawl import Firecrawl
+from sqlalchemy.orm import Session
 from models import FirecrawlResponse
 from config import config
 
@@ -112,6 +113,36 @@ class FirecrawlService:
                 print(f"Error in polling: {str(e)}")
                 await websocket_service.send_error(request_id, str(e))
                 break
+
+async def scrape_url(url: str,
+                   page_options: dict = None,
+                   crawler_options: dict = None,
+                   extraction_options: dict = None) -> dict:
+    """
+    Asynchronously scrapes a URL using the Firecrawl API.
+    """
+    # ... function implementation ...
+
+async def process_url(url_id: int, db: Session):
+    """
+    Process a URL resource to extract information.
+    """
+    # TODO: Implement Firecrawl extraction logic here
+    # 1. Fetch the URL from the database using url_id
+    # 2. Call scrape_url with the URL
+    # 3. Save the extracted data back to the Url record
+    pass
+
+async def process_document(document_id: int, db: Session):
+    """
+    Process a document resource to extract information.
+    """
+    # TODO: Implement Firecrawl extraction logic for documents
+    # 1. Fetch the document from the database using document_id
+    # 2. Get the file path or content
+    # 3. Use Firecrawl's document processing capabilities
+    # 4. Save the extracted data back to the Document record
+    pass
 
 # Global Firecrawl service instance
 firecrawl_service = FirecrawlService()

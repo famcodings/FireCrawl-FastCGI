@@ -1,49 +1,45 @@
 /**
- * Application constants
+ * Application constants and enums for the frontend
  */
 
-export const API_ENDPOINTS = {
-  CRAWL: '/api/crawl',
-  STATUS: '/api/status',
-  HEALTH: '/api/health',
-};
-
-export const WS_EVENTS = {
-  CONNECT: 'connect',
-  DISCONNECT: 'disconnect',
-  STATUS_UPDATE: 'status_update',
-  RESULT: 'result',
-  ERROR: 'error',
-};
-
-export const CRAWL_STATUS = {
-  IDLE: 'idle',
+/**
+ * Resource status constants - must match backend ResourceStatus enum
+ */
+export const RESOURCE_STATUS = {
+  PENDING: 'pending',
   PROCESSING: 'processing',
-  COMPLETED: 'completed',
-  ERROR: 'error',
-  CANCELLED: 'cancelled',
+  READY: 'ready',
+  FAILED: 'failed'
 };
 
-export const HTTP_STATUS = {
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500,
+/**
+ * All valid status values for validation
+ */
+export const VALID_STATUSES = Object.values(RESOURCE_STATUS);
+
+/**
+ * Default status for new resources
+ */
+export const DEFAULT_STATUS = RESOURCE_STATUS.PENDING;
+
+/**
+ * Check if a status string is valid
+ * @param {string} status - Status to validate
+ * @returns {boolean} True if valid
+ */
+export const isValidStatus = (status) => {
+  return VALID_STATUSES.includes(status);
 };
 
-export const FORM_VALIDATION = {
-  MIN_URL_LENGTH: 10,
-  MAX_URL_LENGTH: 2048,
-  MIN_COMPANY_NAME_LENGTH: 2,
-  MAX_COMPANY_NAME_LENGTH: 100,
+/**
+ * Resource type constants
+ */
+export const RESOURCE_TYPE = {
+  URL: 'URL',
+  PDF: 'PDF'
 };
 
-export const UI_CONSTANTS = {
-  DEBOUNCE_DELAY: 300,
-  TOAST_DURATION: 5000,
-  RETRY_ATTEMPTS: 3,
-  CONNECTION_TIMEOUT: 10000,
-};
+/**
+ * All valid resource types
+ */
+export const VALID_RESOURCE_TYPES = Object.values(RESOURCE_TYPE);

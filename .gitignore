@@ -300,3 +300,62 @@ tmp/
 # Firecrawl specific
 firecrawl_cache/
 extraction_results/
+
+# User uploaded files - DO NOT COMMIT
+uploads/
+**/uploads/
+backend/uploads/
+frontend/uploads/
+
+# User documents and data
+*.pdf
+*.doc
+*.docx
+*.txt
+*.csv
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Temporary upload files
+temp_uploads/
+tmp_files/
+staging/
+
+# User-generated content directories
+documents/
+files/
+attachments/
+media/
+
+# Database files with user data
+*.sqlite3
+*.db
+data/
+backups/
+dumps/
+
+# Docker volumes with user data
+docker_data/
+postgres_data/
+redis_data/
+
+# User configuration files
+user_config/
+*.local.json
+*.user.json
+
+# Test files that might contain sensitive data
+test_*.pdf
+sample_*.doc
+example_*.*
+
+# Backup files
+*.bak
+*.backup
+*~

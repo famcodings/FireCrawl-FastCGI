@@ -1,4 +1,4 @@
-"""Configuration module for the FireCrawl application."""
+"""Configuration module for the infobud-poc application."""
 import os
 from dotenv import load_dotenv
 
@@ -14,6 +14,12 @@ class Config:
     # Redis configuration
     REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379")
     
+    # PostgreSQL configuration
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    
+    # Groq API configuration
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
     # Server configuration
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 8000))
@@ -23,5 +29,10 @@ class Config:
     
     # Request expiration time (in seconds)
     REQUEST_EXPIRATION = 3600  # 1 hour
+
+    # File upload configuration
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+    ALLOWED_FILE_TYPES = ['.pdf', '.docx', '.txt', '.xlsx', '.xls']
+
 
 config = Config()

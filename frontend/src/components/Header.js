@@ -1,58 +1,80 @@
-/** Header component for the application */
+/** Sidebar Header component for the application */
 import PropTypes from 'prop-types';
 
-const Header = ({ appName = 'InfoBud PoC', version = '1.0.0' }) => {
+const Header = ({
+  appName = 'InfoBud PoC',
+  version = '1.0.0',
+  supplier,
+  resources = []
+}) => {
   return (
-    <header className="text-center mb-12">
-      <div className="glass-card p-8 md:p-12 relative overflow-hidden">
-        {/* Background accent */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-purple-400/10 to-pink-400/10" />
-        
-        {/* Content */}
-        <div className="relative z-10">
+    <div className="p-6 h-full flex flex-col">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex mb-4">
+          <img 
+            src="/logos/logo-light.svg" 
+            alt={appName} 
+            className="h-12"
+          />
+        </div>
+        <p className="text-gray-600 text-sm leading-relaxed">
+          Create supplier profiles and manage resources for intelligent business matching.
+        </p>
+      </div>
 
-          {/* Title */}
-          <div className="relative mb-4">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight relative px-6 py-2">
-              
-              {/* Main text with shimmer animation */}
-              <span className="relative text-shimmer drop-shadow-2xl">
-                {appName}
-              </span>
-            </h1>
+      {/* Progress Steps */}
+      <div className="mb-8">
+        <h3 className="text-gray-800 font-semibold mb-4">Progress</h3>
+        <div className="space-y-3">
+          <div className={`flex items-center space-x-3 ${supplier ? 'text-gray-800' : 'text-gray-400'}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${supplier ? 'text-white' : 'bg-gray-200 text-gray-500'}`} style={supplier ? {backgroundColor: '#ec6636'} : {}}>
+              {supplier ? '✓' : '1'}
+            </div>
+            <span className="text-sm">Create Supplier</span>
           </div>
-
-          {/* Subtitle */}
-          <p className="text-lg md:text-xl text-white/90 font-medium mb-4 max-w-2xl mx-auto leading-relaxed">
-            Extract comprehensive company insights from any website using AI-powered analysis
-          </p>
-
-          {/* Features badges */}
-          <div className="flex flex-wrap justify-center gap-3 mb-6">
-            <span className="px-4 py-2 text-sm font-medium text-white/80 bg-white/10 rounded-full backdrop-blur-sm border border-white/20">
-              🚀 AI-Powered
-            </span>
-            <span className="px-4 py-2 text-sm font-medium text-white/80 bg-white/10 rounded-full backdrop-blur-sm border border-white/20">
-              ⚡ Real-time
-            </span>
-            <span className="px-4 py-2 text-sm font-medium text-white/80 bg-white/10 rounded-full backdrop-blur-sm border border-white/20">
-              📊 Comprehensive
-            </span>
+          <div className={`flex items-center space-x-3 ${supplier && resources.length > 0 ? 'text-gray-800' : 'text-gray-400'}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${supplier && resources.length > 0 ? 'text-white' : 'bg-gray-200 text-gray-500'}`} style={supplier && resources.length > 0 ? {backgroundColor: '#ec6636'} : {}}>
+              {supplier && resources.length > 0 ? '✓' : '2'}
+            </div>
+            <span className="text-sm">Add Resources</span>
           </div>
-
-          {/* Version */}
-          <div className="text-sm text-white/60 font-mono">
-            v{version}
+          <div className="flex items-center space-x-3 text-gray-400">
+            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">3</div>
+            <span className="text-sm">Process & Analyze</span>
           </div>
         </div>
       </div>
-    </header>
+
+      {/* Current Status */}
+      {supplier && (
+        <div className="mb-8">
+          <h3 className="text-gray-800 font-semibold mb-3">Current Supplier</h3>
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <p className="text-gray-800 font-medium">{supplier.name}</p>
+            <p className="text-gray-600 text-sm">
+              {supplier.address?.city}, {supplier.address?.country}
+            </p>
+            <p className="text-gray-500 text-xs mt-2">
+              {resources.length} resource{resources.length !== 1 ? 's' : ''} added
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="mt-auto space-y-3">
+        {/* Start Over button removed for PoC - single supplier workflow */}
+      </div>
+    </div>
   );
 };
 
 Header.propTypes = {
   appName: PropTypes.string,
-  version: PropTypes.string
+  version: PropTypes.string,
+  supplier: PropTypes.object,
+  resources: PropTypes.array
 };
 
 export default Header;

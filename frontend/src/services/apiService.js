@@ -54,6 +54,120 @@ class ApiService {
     }
   }
 
+  /**
+   * Get the single supplier for this PoC
+   * @returns {Promise<any>} The supplier data
+   */
+  async getSupplier() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/supplier`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null; // No supplier exists yet
+        }
+        throw new Error('Failed to fetch supplier');
+      }
+      return await response.json();
+    } catch (error) {
+      throw new Error(error.message || 'Network error');
+    }
+  }
+
+  /**
+   * Creates or updates the single supplier for this PoC
+   * @param {object} supplierData - The supplier data
+   * @returns {Promise<any>} The created/updated supplier
+   */
+  async saveSupplier(supplierData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/supplier`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(supplierData),
+      });
+      if (!response.ok) throw new Error('Failed to save supplier');
+      return await response.json();
+    } catch (error) {
+      throw new Error(error.message || 'Network error');
+    }
+  }
+
+  /**
+   * Re-analyze a resource
+   * @param {number} resourceId - ID of the resource to re-analyze
+   * @param {string} resourceType - Type of resource ('URL' or 'PDF')
+   * @returns {Promise<Object>} Success message
+   */
+  async reanalyzeResource(resourceId, resourceType) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/supplier/resources/${resourceId}/reanalyze?resource_type=${resourceType.toLowerCase()}`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to re-analyze resource');
+      }
+      return await response.json();
+    } catch (error) {
+      throw new Error(error.message || 'Network error');
+    }
+  }
+
+  /**
+   * Delete a resource
+   * @param {number} resourceId - ID of the resource to delete
+   * @param {string} resourceType - Type of resource ('URL' or 'PDF')
+   * @returns {Promise<Object>} Success message
+   */
+  async deleteResource(resourceId, resourceType) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/supplier/resources/${resourceId}?resource_type=${resourceType.toLowerCase()}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete resource');
+      }
+      return await response.json();
+    } catch (error) {
+      throw new Error(error.message || 'Network error');
+    }
+  }
+
+  /**
+   * Get all resources for the single supplier
+   * @returns {Promise<Array>} Array of resources
+   */
+  async getResources() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/supplier/resources`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return []; // No supplier exists yet, return empty array
+        }
+        throw new Error('Failed to fetch resources');
+      }
+      return await response.json();
+    } catch (error) {
+      throw new Error(error.message || 'Network error');
+    }
+  }
+
+  /**
+   * Adds a resource for the single supplier
+   * @param {FormData} resourceData - The resource data
+   * @returns {Promise<any>} The created resource
+   */
+  async addResource(resourceData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/supplier/resources`, {
+        method: 'POST',
+        body: resourceData,
+      });
+      if (!response.ok) throw new Error('Failed to add resource');
+      return await response.json();
+    } catch (error) {
+      throw new Error(error.message || 'Network error');
+    }
+  }
 }
 
 export const apiService = new ApiService();

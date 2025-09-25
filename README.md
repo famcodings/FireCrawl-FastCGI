@@ -1,4 +1,4 @@
-# FireCrawl - AI-Powered Company Analysis Tool
+# InfoBud PoC - AI-Powered Company Analysis Tool
 
 A modern, containerized full-stack application that uses Firecrawl's Extract API to analyze company websites and extract comprehensive business insights. Built with FastAPI, React (with Tailwind CSS), Redis, and Docker. Features a beautiful macOS-style glass morphism UI with real-time WebSocket updates.
 

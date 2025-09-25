@@ -1,28 +1,28 @@
-# FireCrawl Docker Management Makefile
+# InfoBud PoC Docker Management Makefile
 
 .PHONY: help start stop restart logs test clean build dev install lint format
 
 # Default target
 help: ## Show this help message
-	@echo "FireCrawl Docker Management"
+	@echo "InfoBud PoC Docker Management"
 	@echo ""
 	@echo "Available commands:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 start: ## Start the application
-	@echo "🚀 Starting FireCrawl application..."
+	@echo "🚀 Starting InfoBud PoC application..."
 	docker compose up -d --build
 	@echo "✅ Application started!"
 	@echo "   Frontend: http://localhost:3000"
 	@echo "   Backend:  http://localhost:8000"
 
 stop: ## Stop the application
-	@echo "🛑 Stopping FireCrawl application..."
+	@echo "🛑 Stopping InfoBud PoC application..."
 	docker compose down
 	@echo "✅ Application stopped!"
 
 restart: ## Restart the application
-	@echo "🔄 Restarting FireCrawl application..."
+	@echo "🔄 Restarting InfoBud PoC application..."
 	docker compose down
 	docker compose up -d --build
 	@echo "✅ Application restarted!"

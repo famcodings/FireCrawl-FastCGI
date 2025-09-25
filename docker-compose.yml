@@ -1,7 +1,7 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: firecrawl-redis
+    container_name: infobud-poc-redis
     ports:
       - "6379:6379"
     volumes:
@@ -13,45 +13,62 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - firecrawl-network
+      - infobud-poc-network
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: infobud-poc-postgres
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - infobud-poc-network
 
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: firecrawl-backend
+    container_name: infobud-poc-backend
     ports:
       - "8000:8000"
-    environment:
-      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
-      - REDIS_URL=redis://redis:6379
-      - HOST=0.0.0.0
-      - PORT=8000
+    env_file:
+      - .env
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     volumes:
       - ./backend:/app
     networks:
-      - firecrawl-network
+      - infobud-poc-network
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: firecrawl-frontend
+    container_name: infobud-poc-frontend
     ports:
       - "3000:80"
     depends_on:
       - backend
     networks:
-      - firecrawl-network
+      - infobud-poc-network
     restart: unless-stopped
 
 volumes:
   redis_data:
+  postgres_data:
 
 networks:
-  firecrawl-network:
+  infobud-poc-network:
     driver: bridge
