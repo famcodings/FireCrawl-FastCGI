@@ -117,78 +117,8 @@ async def _start_url_analysis(db: Session, url_obj: models.Url, request_id: str)
         db.commit()
         raise HTTPException(status_code=500, detail="No job ID returned from Firecrawl")
 
-    await redis_service.store_request_data(request_id, {
-        "status": "processing",
-        "job_id": job_id,
-        "resource_id": str(url_obj.id),
-        "resource_type": "URL"
-    })
-    await websocket_service.send_status(request_id, "processing")
-    asyncio.create_task(_poll_url_resource(job_id, request_id, url_obj.id))
-
-
-async def _poll_url_resource(job_id: str, request_id: str, url_id: int) -> None:
-    """Poll Firecrawl for a URL resource and propagate results."""
-    try:
-        while True:
-            status_result = firecrawl_service.get_extract_status(job_id)
-
-            if not status_result.get("success"):
-                error_msg = status_result.get("error") or "Unknown error"
-                _update_url_resource(url_id, status=ResourceStatus.FAILED.value, set_last_analysis=True)
-                await websocket_service.send_error(request_id, error_msg)
-                break
-
-            status = status_result.get("status")
-
-            if status == "completed":
-                extract_data = status_result.get("data")
-                analysis_dict = {}
-
-                if extract_data:
-                    result = firecrawl_service.parse_extract_data(extract_data)
-                    analysis_dict = result.dict()
-                    _update_url_resource(
-                        url_id,
-                        status=ResourceStatus.READY.value,
-                        extracted_data=json.dumps(analysis_dict),
-                        set_last_analysis=True
-                    )
-                else:
-                    _update_url_resource(
-                        url_id,
-                        status=ResourceStatus.READY.value,
-                        set_last_analysis=True
-                    )
-
-                result_payload = {
-                    "resource_id": url_id,
-                    "resource_type": "URL",
-                    "analysis": analysis_dict,
-                }
-
-                await websocket_service.send_result(request_id, result_payload)
-                await redis_service.update_request_status(
-                    request_id,
-                    "completed",
-                    resource_id=str(url_id),
-                    resource_type="URL"
-                )
-                break
-
-            if status == "failed":
-                error_msg = status_result.get("error") or "Unknown error"
-                _update_url_resource(url_id, status=ResourceStatus.FAILED.value, set_last_analysis=True)
-                await websocket_service.send_error(request_id, error_msg)
-                break
-
-            await redis_service.update_request_status(request_id, status or "processing")
-            await websocket_service.send_status(request_id, status or "processing")
-            await asyncio.sleep(3)
-
-    except Exception as exc:
-        _update_url_resource(url_id, status=ResourceStatus.FAILED.value, set_last_analysis=True)
-        await websocket_service.send_error(request_id, str(exc))
+    # Note: URL resource polling now handled by Celery tasks
+    # The Celery task will handle the polling and WebSocket notifications
 
 
 async def create_url_resource(db: Session, supplier: models.Supplier, name: str, url: Optional[str]) -> dict:
@@ -206,7 +136,37 @@ async def create_url_resource(db: Session, supplier: models.Supplier, name: str,
     _mark_url_processing(db, db_url)
 
     try:
-        await _start_url_analysis(db, db_url, request_id)
+        # Start Firecrawl extraction
+        extract_result = firecrawl_service.start_extract(db_url.url)
+        print("extract_result: ", extract_result)
+        
+        if not extract_result["success"]:
+            error_message = extract_result.get("error") or "Failed to start analysis"
+            db_url.status = ResourceStatus.FAILED.value
+            db_url.last_analysis_at = datetime.utcnow()
+            db.commit()
+            raise HTTPException(status_code=500, detail=f"Firecrawl error: {error_message}")
+
+        job_id = extract_result.get("job_id")
+        if not job_id:
+            db_url.status = ResourceStatus.FAILED.value
+            db_url.last_analysis_at = datetime.utcnow()
+            db.commit()
+            raise HTTPException(status_code=500, detail="No job ID returned from Firecrawl")
+
+        # Start Celery task for URL processing
+        from tasks.resource_tasks import process_url_resource_task
+        task = process_url_resource_task.delay(job_id, request_id, db_url.id)
+
+        # Store request info in Redis
+        await redis_service.store_request_data(request_id, {
+            "status": "processing",
+            "job_id": job_id,
+            "task_id": task.id,
+            "resource_id": str(db_url.id),
+            "resource_type": "URL"
+        })
+        
     except HTTPException:
         raise
     except Exception as exc:
@@ -298,7 +258,18 @@ async def create_pdf_resource(db: Session, supplier: models.Supplier, name: str,
             db.commit()
             db.refresh(db_doc)
 
-            await _analyze_pdf_document(db, db_doc, full_path)
+            # Start Celery task for document processing
+            request_id = str(uuid.uuid4())
+            from tasks.resource_tasks import process_document_resource_task
+            task = process_document_resource_task.delay(db_doc.id, request_id)
+
+            # Store request info in Redis
+            await redis_service.store_request_data(request_id, {
+                "status": "processing",
+                "task_id": task.id,
+                "resource_id": str(db_doc.id),
+                "resource_type": "DOCUMENT"
+            })
 
             created_resources.append(format_document_resource(db_doc))
 

@@ -18,3 +18,5 @@ python-magic==0.4.27
 PyPDF2==3.0.1
 python-docx==1.1.0
 openpyxl==3.1.2
+celery==5.3.4
+flower==2.0.1

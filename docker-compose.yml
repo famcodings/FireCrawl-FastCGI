@@ -52,6 +52,61 @@ services:
       - infobud-poc-network
     restart: unless-stopped
 
+  celery-worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: infobud-poc-celery-worker
+    command: celery -A celery_app worker --loglevel=info --queues=crawl,resources,default
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - infobud-poc-network
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: infobud-poc-celery-beat
+    command: celery -A celery_app beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - infobud-poc-network
+    restart: unless-stopped
+
+  flower:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: infobud-poc-flower
+    command: celery -A celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - infobud-poc-network
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend

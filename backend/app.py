@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from pathlib import Path
 from routes import api
 from config import config
+from services.websocket_bridge import websocket_bridge
 
 app = FastAPI(
     title="infobud-poc API",
@@ -52,6 +53,19 @@ async def serve_uploaded_file(file_path: str):
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the infobud-poc API"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Start WebSocket bridge on application startup."""
+    await websocket_bridge.start_background_task()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Stop WebSocket bridge on application shutdown."""
+    await websocket_bridge.stop_background_task()
+
 
 if __name__ == "__main__":
     import uvicorn

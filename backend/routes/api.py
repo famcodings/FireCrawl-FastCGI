@@ -12,12 +12,15 @@ from utils.file_handler import get_file_url
 from services.redis_service import redis_service
 from services.firecrawl_service import firecrawl_service
 from services.websocket_service import websocket_service
+from services.websocket_bridge import websocket_bridge
 from services.resource_service import (
     create_url_resource,
     create_pdf_resource,
     format_url_resource,
     format_document_resource,
 )
+from tasks.crawl_tasks import crawl_website_task
+from tasks.resource_tasks import process_url_resource_task, process_document_resource_task
 import models, schemas
 from database import get_db
 
@@ -69,22 +72,23 @@ async def start_crawl(request: CrawlRequest):
             if not job_id:
                 raise HTTPException(status_code=500, detail="No job ID returned from Firecrawl")
             
+            # Start Celery task
+            task = crawl_website_task.delay(job_id, request_id, str(request.url), request.company_name)
+            
             # Store request info in Redis
             await redis_service.store_request_data(request_id, {
                 "status": "processing",
                 "job_id": job_id,
+                "task_id": task.id,
                 "url": str(request.url),
                 "company_name": request.company_name
             })
             
-            # Start background polling
-            import asyncio
-            asyncio.create_task(firecrawl_service.poll_status(job_id, request_id, websocket_service))
-            
             return CrawlStatus(
                 request_id=request_id,
                 status="started",
-                message="Crawl started successfully"
+                message="Crawl started successfully",
+                task_id=task.id
             )
                 
     except Exception as e:
@@ -113,6 +117,20 @@ async def get_status(request_id: str):
         request_data["result"] = json.loads(request_data["result"])
     
     return request_data
+
+
+@router.get("/task-status/{task_id}")
+async def get_task_status(task_id: str):
+    """Get Celery task status."""
+    from celery_app import celery_app
+    task = celery_app.AsyncResult(task_id)
+    return {
+        'task_id': task_id,
+        'state': task.state,
+        'result': task.result if task.state == 'SUCCESS' else None,
+        'error': str(task.result) if task.state == 'FAILURE' else None,
+        'info': task.info if task.state in ['PENDING', 'PROGRESS'] else None
+    }
 
 @router.get("/supplier", response_model=schemas.Supplier)
 def get_supplier(db: Session = Depends(get_db)):
@@ -251,8 +269,43 @@ async def reanalyze_resource(
         db.commit()
         db.refresh(url_obj)
         
-        # TODO: Trigger background processing with Firecrawl
-        # await process_url(url_obj.id, db)
+        # Start Celery task for URL processing
+        request_id = str(uuid.uuid4())
+        
+        # Start Firecrawl extraction
+        extract_result = firecrawl_service.start_extract(url_obj.url)
+        
+        if not extract_result["success"]:
+            # Revert status on error
+            url_obj.status = ResourceStatus.FAILED.value
+            db.commit()
+            raise HTTPException(status_code=500, detail=f"Firecrawl error: {extract_result['error']}")
+        
+        if extract_result["is_direct"]:
+            # Direct response - process immediately
+            result = firecrawl_service.parse_extract_data(extract_result["response"].data)
+            url_obj.extracted_data = result.dict()
+            url_obj.status = ResourceStatus.READY.value
+            db.commit()
+        else:
+            # Async job - start Celery task
+            job_id = extract_result["job_id"]
+            if not job_id:
+                url_obj.status = ResourceStatus.FAILED.value
+                db.commit()
+                raise HTTPException(status_code=500, detail="No job ID returned from Firecrawl")
+            
+            # Start Celery task
+            task = process_url_resource_task.delay(job_id, request_id, url_obj.id)
+            
+            # Store request info in Redis
+            await redis_service.store_request_data(request_id, {
+                "status": "processing",
+                "job_id": job_id,
+                "task_id": task.id,
+                "resource_id": str(url_obj.id),
+                "resource_type": "URL"
+            })
         
         return {
             "message": "URL resource re-analysis started successfully",
@@ -290,8 +343,19 @@ async def reanalyze_resource(
         db.commit()
         db.refresh(doc_obj)
         
-        # TODO: Trigger background processing with Firecrawl
-        # await process_document(doc_obj.id, db)
+        # Start Celery task for document processing
+        request_id = str(uuid.uuid4())
+        
+        # Start Celery task for document processing
+        task = process_document_resource_task.delay(doc_obj.id, request_id)
+        
+        # Store request info in Redis
+        await redis_service.store_request_data(request_id, {
+            "status": "processing",
+            "task_id": task.id,
+            "resource_id": str(doc_obj.id),
+            "resource_type": "DOCUMENT"
+        })
         
         resource_payload = {
             "id": doc_obj.id,

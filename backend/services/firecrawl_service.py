@@ -81,38 +81,7 @@ class FirecrawlService:
             industry=extract_data.get("industry", "")
         )
     
-    async def poll_status(self, job_id: str, request_id: str, websocket_service) -> None:
-        """Poll Firecrawl status until completion."""
-        while True:
-            try:
-                status_result = self.get_extract_status(job_id)
-                
-                if not status_result["success"]:
-                    await websocket_service.send_error(request_id, status_result["error"])
-                    break
-                
-                status = status_result["status"]
-                print(f"Status check for {job_id}: {status}")
-                
-                if status == "completed":
-                    extract_data = status_result["data"]
-                    if extract_data:
-                        result = self.parse_extract_data(extract_data)
-                        await websocket_service.send_result(request_id, result.dict())
-                    break
-                
-                elif status == "failed":
-                    error_msg = status_result["error"] or "Unknown error"
-                    await websocket_service.send_error(request_id, error_msg)
-                    break
-                
-                # Still processing, wait 3 seconds
-                await asyncio.sleep(3)
-                
-            except Exception as e:
-                print(f"Error in polling: {str(e)}")
-                await websocket_service.send_error(request_id, str(e))
-                break
+    # Note: poll_status method removed - now handled by Celery tasks
 
 async def scrape_url(url: str,
                    page_options: dict = None,
