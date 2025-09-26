@@ -284,7 +284,7 @@ async def reanalyze_resource(
         if extract_result["is_direct"]:
             # Direct response - process immediately
             result = firecrawl_service.parse_extract_data(extract_result["response"].data)
-            url_obj.extracted_data = result.dict()
+            url_obj.extracted_data = json.dumps(result.dict())
             url_obj.status = ResourceStatus.READY.value
             db.commit()
         else:

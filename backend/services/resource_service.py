@@ -178,61 +178,6 @@ async def create_url_resource(db: Session, supplier: models.Supplier, name: str,
     return format_url_resource(db_url, request_id)
 
 
-async def _analyze_pdf_document(db: Session, db_doc: models.Document, full_path: str) -> None:
-    """Run document extraction and Groq analysis for a saved PDF."""
-    # Mark as processing while we perform synchronous analysis work
-    db_doc.status = ResourceStatus.PROCESSING.value
-    db.commit()
-    db.refresh(db_doc)
-
-    loop = asyncio.get_running_loop()
-
-    def _read_file_bytes() -> bytes:
-        with open(full_path, "rb") as handle:
-            return handle.read()
-
-    file_bytes = await loop.run_in_executor(None, _read_file_bytes)
-
-    reader_result = await loop.run_in_executor(
-        None,
-        document_reader_service.process_files,
-        [(file_bytes, db_doc.original_filename or db_doc.name or db_doc.file_path)],
-    )
-
-    if not reader_result.get("success"):
-        db_doc.status = ResourceStatus.FAILED.value
-        db.commit()
-        raise HTTPException(status_code=400, detail=reader_result.get("error", "Failed to read document"))
-
-    documents = reader_result.get("documents", [])
-    document_content = "\n\n".join(doc.get("text", "") for doc in documents).strip()
-
-    if not document_content:
-        db_doc.status = ResourceStatus.FAILED.value
-        db.commit()
-        raise HTTPException(status_code=400, detail="No readable text found in the uploaded document")
-
-    analysis = await loop.run_in_executor(
-        None,
-        grok_service.analyze_documents_with_questions,
-        document_content,
-        PDF_ANALYSIS_QUESTIONS,
-    )
-
-    if not analysis.success:
-        db_doc.status = ResourceStatus.FAILED.value
-        db.commit()
-        raise HTTPException(status_code=500, detail=analysis.error or "Failed to analyze document")
-
-    db_doc.extracted_data = json.dumps({
-        "responses": analysis.responses,
-        "processed_files": reader_result.get("processed_files", []),
-    })
-    db_doc.status = ResourceStatus.READY.value
-    db.commit()
-    db.refresh(db_doc)
-
-
 async def create_pdf_resource(db: Session, supplier: models.Supplier, name: str, files: Optional[List[UploadFile]]) -> Optional[dict]:
     """Create a PDF resource and return the formatted representation."""
     if not files:
