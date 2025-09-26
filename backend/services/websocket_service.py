@@ -52,9 +52,14 @@ class WebSocketService:
         """Send initial status when WebSocket connects."""
         request_data = await redis_service.get_request_data(request_id)
         if request_data:
+            # Map legacy "error" status to "failed"
+            status = request_data["status"]
+            if status == "error":
+                status = "failed"
+            
             await websocket.send_text(json.dumps({
                 "type": "status",
-                "status": request_data["status"]
+                "data": {"status": status}
             }))
             
             # If request is already completed, send the result

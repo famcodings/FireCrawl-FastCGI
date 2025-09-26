@@ -316,7 +316,8 @@ async def reanalyze_resource(
                 "url": url_obj.url,
                 "extracted_data": url_obj.extracted_data,
                 "status": url_obj.status or ResourceStatus.PENDING.value,
-                "last_analysis_at": url_obj.last_analysis_at.isoformat() if url_obj.last_analysis_at else None
+                "last_analysis_at": url_obj.last_analysis_at.isoformat() if url_obj.last_analysis_at else None,
+                "analysis_request_id": request_id
             }
         }
         
@@ -363,7 +364,8 @@ async def reanalyze_resource(
             "type": "PDF",
             "filename": doc_obj.original_filename if hasattr(doc_obj, 'original_filename') and doc_obj.original_filename else doc_obj.url,
             "extracted_data": doc_obj.extracted_data,
-            "status": doc_obj.status or ResourceStatus.PENDING.value
+            "status": doc_obj.status or ResourceStatus.PENDING.value,
+            "analysis_request_id": request_id
         }
 
         if hasattr(doc_obj, 'file_path') and doc_obj.file_path:

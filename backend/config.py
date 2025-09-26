@@ -25,7 +25,7 @@ class Config:
     PORT = int(os.getenv("PORT", 8000))
     
     # CORS configuration
-    ALLOWED_ORIGINS = ["http://localhost:3000"]
+    ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
     
     # Request expiration time (in seconds)
     REQUEST_EXPIRATION = 3600  # 1 hour

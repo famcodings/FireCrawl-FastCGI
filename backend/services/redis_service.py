@@ -47,7 +47,7 @@ class RedisService:
     
     async def store_error(self, request_id: str, error: str) -> None:
         """Store error information in Redis."""
-        await self.update_request_status(request_id, "error", error=error)
+        await self.update_request_status(request_id, "failed", error=error)
     
     async def close(self) -> None:
         """Close Redis connection."""
@@ -90,7 +90,7 @@ class RedisService:
     
     def store_error_sync(self, request_id: str, error: str) -> None:
         """Store error information in Redis (synchronous)."""
-        self.update_request_status_sync(request_id, "error", error=error)
+        self.update_request_status_sync(request_id, "failed", error=error)
     
     def close_sync(self) -> None:
         """Close synchronous Redis connection."""

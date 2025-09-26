@@ -63,8 +63,56 @@ const Resources = ({ resources, onAddResource, isLoading, onResourcesRefresh, on
     try {
       const response = await apiService.reanalyzeResource(resource.id, resource.type);
       toast.success('Resource re-analysis started successfully');
+      
+      // Update the resource with the response data
       if (onResourceUpdated && response?.resource) {
         onResourceUpdated(response.resource);
+        
+        // Connect to WebSocket for real-time updates if request_id is available
+        if (response.resource.analysis_request_id) {
+          // Import webSocketService here to avoid circular dependencies
+          import('../services').then(({ webSocketService }) => {
+            console.log(`🔌 Connecting WebSocket for re-analysis of resource ${resource.id} with request ID: ${response.resource.analysis_request_id}`);
+            
+            webSocketService.connect(response.resource.analysis_request_id, {
+              onStatus: (data) => {
+                console.log(`📊 Re-analysis status update for resource ${resource.id}:`, data);
+                onResourceUpdated({
+                  id: resource.id,
+                  type: resource.type,
+                  status: data.data?.status || data.status || 'processing'
+                });
+              },
+              onResult: (data) => {
+                console.log(`✅ Re-analysis result received for resource ${resource.id}:`, data);
+                onResourceUpdated({
+                  id: resource.id,
+                  type: resource.type,
+                  status: 'ready',
+                  extracted_data: data.data || data,
+                  last_analysis_at: new Date().toISOString()
+                });
+                toast.success(`Resource re-analysis completed successfully!`);
+              },
+              onError: (data) => {
+                console.error(`❌ Re-analysis error for resource ${resource.id}:`, data);
+                onResourceUpdated({
+                  id: resource.id,
+                  type: resource.type,
+                  status: 'failed'
+                });
+                const errorMessage = data.message || data.error || 'Re-analysis failed';
+                toast.error(`Resource re-analysis failed: ${errorMessage}`);
+              },
+              onOpen: () => {
+                console.log(`✅ WebSocket connected for re-analysis of resource ${resource.id}`);
+              },
+              onClose: () => {
+                console.log(`🔌 WebSocket disconnected for re-analysis of resource ${resource.id}`);
+              }
+            });
+          });
+        }
       } else if (onResourcesRefresh) {
         await onResourcesRefresh();
       }

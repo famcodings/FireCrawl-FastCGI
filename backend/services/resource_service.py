@@ -216,11 +216,14 @@ async def create_pdf_resource(db: Session, supplier: models.Supplier, name: str,
                 "resource_type": "DOCUMENT"
             })
 
-            created_resources.append(format_document_resource(db_doc))
+            # Add request_id to the formatted resource
+            formatted_resource = format_document_resource(db_doc)
+            formatted_resource["analysis_request_id"] = request_id
+            created_resources.append(formatted_resource)
 
         except HTTPException:
             raise
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f"Failed to process file {file.filename}: {str(exc)}") from exc
 
-    return created_resources[0] if created_resources else None
+    return created_resources if created_resources else None

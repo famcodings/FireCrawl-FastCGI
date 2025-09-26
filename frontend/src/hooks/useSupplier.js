@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { apiService } from '../services';
+import { apiService, webSocketService } from '../services';
 import { useBeforeUnload } from './useBeforeUnload';
 
 export const useSupplier = () => {
@@ -101,15 +101,24 @@ export const useSupplier = () => {
         setError(null);
         try {
             // FormData will be constructed in the component
-            const newResource = await apiService.addResource(resourceData);
-            setResources(prev => [...prev, newResource]);
+            let newResource = await apiService.addResource(resourceData);
+            newResource = Array.isArray(newResource) ? newResource : [newResource];
+            setResources(prev => [...prev, ...newResource]);
+            
+            // Connect to WebSocket for real-time updates if request_id is available
+            newResource.forEach((resource) => {
+                if (resource.analysis_request_id) {
+                    connectWebSocketForResource(resource.analysis_request_id, resource.id, resource.type);
+                }
+            });
             
             // Show success toast
-            toast.success('Resource added successfully!');
+            toast.success(`${newResource.length} Resource${newResource.length > 1 ? 's' : ''} added successfully!`);
         } catch (err) {
             const errorMessage = err.message || 'Failed to add resource';
             setError(errorMessage);
             toast.error(errorMessage);
+            console.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -137,7 +146,55 @@ export const useSupplier = () => {
         });
     };
 
+    const connectWebSocketForResource = (requestId, resourceId, resourceType) => {
+        console.log(`🔌 Connecting WebSocket for resource ${resourceId} (${resourceType}) with request ID: ${requestId}`);
+        
+        webSocketService.connect(requestId, {
+            onStatus: (data) => {
+                console.log(`📊 Status update for resource ${resourceId}:`, data);
+                // Update resource status in the UI
+                upsertResource({
+                    id: resourceId,
+                    type: resourceType,
+                    status: data.data?.status || data.status || 'processing'
+                });
+            },
+            onResult: (data) => {
+                console.log(`✅ Result received for resource ${resourceId}:`, data);
+                // Update resource with final result
+                upsertResource({
+                    id: resourceId,
+                    type: resourceType,
+                    status: 'ready',
+                    extracted_data: data.data || data,
+                    last_analysis_at: new Date().toISOString()
+                });
+                toast.success(`Resource analysis completed successfully!`);
+            },
+            onError: (data) => {
+                console.error(`❌ Error for resource ${resourceId}:`, data);
+                // Update resource status to failed
+                upsertResource({
+                    id: resourceId,
+                    type: resourceType,
+                    status: 'failed'
+                });
+                const errorMessage = data.message || data.error || 'Analysis failed';
+                toast.error(`Resource analysis failed: ${errorMessage}`);
+            },
+            onOpen: () => {
+                console.log(`✅ WebSocket connected for resource ${resourceId}`);
+            },
+            onClose: () => {
+                console.log(`🔌 WebSocket disconnected for resource ${resourceId}`);
+            }
+        });
+    };
+
     const reset = () => {
+        // Disconnect any active WebSocket connections
+        webSocketService.disconnect();
+        
         setSupplier(null);
         setResources([]);
         setIsLoading(false);
